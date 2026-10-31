@@ -1,0 +1,264 @@
+/**
+ * @file hero.css
+ * Styles for the scroll-driven freight hero component.
+ * All classes prefixed with hero-.
+ * Responsive unit: --hero-u = min(100vw / 1440, 100vh / 960).
+ * Reference: ARCHITECTURE.md Section 25 and docs/HERO_SPEC.md.
+ */
+
+.hero-track {
+  --hero-u: min(calc(100vw / 1440), calc(100vh / 960));
+  --hero-track-height: 600vh;
+  --edge-px: 44.8vh;
+  --ph: 0;
+
+  position: relative;
+  background-color: var(--color-white, #fff);
+  min-height: 600vh;
+  height: var(--hero-track-height, 600vh);
+  overflow-x: clip;
+}
+
+@media (max-width: 767px), (orientation: portrait) {
+  .hero-track {
+    --hero-u: min(calc(100vw / 430), 1.4px);
+  }
+}
+
+/* Nav Layer (top of track, scrolls away) */
+.hero-nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  padding: calc(32 * var(--hero-u)) calc(48 * var(--hero-u));
+  pointer-events: auto;
+}
+
+.hero-nav-brand {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-weight: 600;
+  font-size: calc(30 * var(--hero-u));
+  letter-spacing: -0.06em;
+  line-height: 1;
+  color: var(--color-ink, #111);
+  user-select: none;
+}
+
+.hero-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: calc(24 * var(--hero-u));
+}
+
+.hero-nav-link {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-weight: 500;
+  font-size: calc(10 * var(--hero-u));
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink, #111);
+  text-decoration: none;
+  transition: opacity 150ms ease;
+}
+
+.hero-nav-link:hover {
+  opacity: 0.7;
+}
+
+.hero-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-weight: 500;
+  font-size: calc(10 * var(--hero-u));
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink, #111);
+  text-decoration: none;
+  padding: calc(8 * var(--hero-u)) calc(16 * var(--hero-u));
+  border: 1px solid var(--color-ink, #111);
+  border-radius: 9999px;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.hero-nav-btn:hover {
+  background-color: var(--color-ink, #111);
+  color: var(--color-white, #fff);
+}
+
+.hero-nav-link:focus-visible,
+.hero-nav-btn:focus-visible {
+  outline: 2px solid var(--color-cobalt, #2f63ff);
+  outline-offset: 2px;
+}
+
+/* Scene Layer (sticky 100lvh viewport) */
+.hero-scene {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100lvh;
+  overflow: hidden;
+  background-color: var(--color-white, #fff);
+}
+
+/* Layer 1: Video (scrubbed, never played) */
+.hero-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  object-fit: cover;
+  z-index: 1;
+}
+
+/* Layer 2: Giant Letters (mix-blend-mode: darken passes behind truck) */
+.hero-giant-letters {
+  position: absolute;
+  bottom: calc(100% - var(--edge-px, 44.8vh));
+  left: 0;
+  z-index: 2;
+  font-family: var(--font-anton), Anton, sans-serif;
+  font-size: calc(330 * var(--hero-u));
+  line-height: 0.8;
+  color: var(--color-giant, #e9e9e9);
+  white-space: nowrap;
+  width: max-content;
+  mix-blend-mode: darken;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+  transform: translate3d(100vw, 0, 0);
+}
+
+@media (max-width: 767px), (orientation: portrait) {
+  .hero-giant-letters {
+    font-size: calc(180 * var(--hero-u));
+  }
+}
+
+/* Layer 4: Dark Band (from --edge-px to viewport bottom) */
+.hero-band {
+  position: absolute;
+  top: var(--edge-px, 44.8vh);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-ink, #111);
+  overflow: hidden;
+  z-index: 3;
+}
+
+/* Horizontal Strip */
+.hero-strip {
+  position: absolute;
+  top: calc(76 * var(--hero-u));
+  left: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: calc(120 * var(--hero-u));
+  width: max-content;
+  white-space: normal;
+  will-change: transform;
+  transform: translate3d(100vw, 0, 0);
+}
+
+/* Lead Block */
+.hero-lead {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  flex-shrink: 0;
+  gap: calc(64 * var(--hero-u));
+}
+
+.hero-headline {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-anton), Anton, sans-serif;
+  font-size: calc(64 * var(--hero-u));
+  line-height: 0.98;
+  text-transform: uppercase;
+  color: var(--color-white, #fff);
+  margin: 0;
+  white-space: nowrap;
+}
+
+.hero-headline-line {
+  display: block;
+}
+
+.hero-headline-accent {
+  color: var(--color-cobalt, #2f63ff);
+}
+
+.hero-lead-paragraphs {
+  display: flex;
+  flex-direction: column;
+  width: calc(250 * var(--hero-u));
+  gap: calc(12 * var(--hero-u));
+  flex-shrink: 0;
+}
+
+.hero-lead-p {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: calc(12 * var(--hero-u));
+  line-height: 1.45;
+  color: var(--text-muted, rgba(255, 255, 255, 0.62));
+  margin: 0;
+}
+
+/* Cards Row */
+.hero-cards-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  flex-shrink: 0;
+}
+
+/* Individual Card */
+.hero-card {
+  flex-shrink: 0;
+  width: calc(270 * var(--hero-u));
+  box-sizing: border-box;
+  padding-left: calc(30 * var(--hero-u));
+  padding-right: calc(30 * var(--hero-u));
+  border-left: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+}
+
+.hero-card:first-of-type {
+  border-left: none;
+}
+
+.hero-card-title {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-anton), Anton, sans-serif;
+  font-size: calc(26 * var(--hero-u));
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: var(--color-white, #fff);
+  margin: 0 0 calc(12 * var(--hero-u)) 0;
+}
+
+.hero-card-title-line {
+  display: block;
+}
+
+.hero-card-body {
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-size: calc(12.4 * var(--hero-u));
+  line-height: 1.45;
+  color: var(--text-muted, rgba(255, 255, 255, 0.62));
+  margin: 0;
+}
