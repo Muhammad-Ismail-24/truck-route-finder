@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 from domain.enums import RiskLevel, WeatherDriver
 
@@ -71,3 +72,42 @@ class RouteSummary:
     miles_by_level: dict[RiskLevel, float]  # all five keys always present
     avg_risk: float
     max_level: RiskLevel
+
+
+@dataclass(frozen=True, slots=True)
+class HourlySeries:
+    """Hourly forecast series for a single weather grid point."""
+
+    times_utc: list[datetime] | tuple[datetime, ...]
+    wind_mph: list[float] | tuple[float, ...]
+    wind_gust_mph: list[float] | tuple[float, ...]
+    rain_in_hr: list[float] | tuple[float, ...]
+    snow_in_hr: list[float] | tuple[float, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class HeatmapPoint:
+    """A single heatmap location with 49-hour forecast and risk arrays."""
+
+    lat: float
+    lng: float
+    risk: list[int]
+    wind_mph: list[float]
+    rain_in_hr: list[float]
+    snow_in_hr: list[float]
+
+    def __getitem__(self, item: str) -> Any:
+        return getattr(self, item)
+
+
+@dataclass(frozen=True, slots=True)
+class HeatmapResult:
+    """Complete 49-hour heatmap result along the trip corridor."""
+
+    start_utc: datetime
+    hours: int
+    truncated: bool
+    points: list[HeatmapPoint]
+
+    def __getitem__(self, item: str) -> Any:
+        return getattr(self, item)

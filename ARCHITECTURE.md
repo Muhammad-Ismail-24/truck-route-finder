@@ -415,6 +415,30 @@ RouteSummary(
     miles_by_level: dict[RiskLevel, float],   # all five keys always present
     avg_risk: float, max_level: RiskLevel,
 )
+
+HourlySeries(
+    times_utc: list[datetime],
+    wind_mph: list[float],
+    wind_gust_mph: list[float],
+    rain_in_hr: list[float],
+    snow_in_hr: list[float],
+)
+
+HeatmapPoint(
+    lat: float,
+    lng: float,
+    risk: list[int],
+    wind_mph: list[float],
+    rain_in_hr: list[float],
+    snow_in_hr: list[float],
+)
+
+HeatmapResult(
+    start_utc: datetime,
+    hours: int,
+    truncated: bool,
+    points: list[HeatmapPoint],
+)
 ```
 
 ### 8.3 Constants (`backend/domain/constants.py`)
