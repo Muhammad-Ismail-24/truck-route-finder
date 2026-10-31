@@ -13,19 +13,33 @@
  *   - Desktop: ~440px --surface-1 sidebar panel (radius 24) on the left,
  *     rounded 24px map frame on the right.
  *   - Mobile: map first (~45vh), sidebar below.
+ * - MapView dynamically imported with ssr: false.
  * - Both panels wrapped in Reveal with 80ms stagger.
  * - Empty state with three numbered steps using mono numerals.
  * - Temporarily displays result JSON in a collapsed debug <details> (removed in T-22).
  *
  * References:
- * ARCHITECTURE.md Section 17.1, 25.1, 25.4, 25.5, Decisions D-27, D-28.
+ * ARCHITECTURE.md Section 17.1, 17.5, 25.1, 25.4, 25.5, Decisions D-17, D-27, D-28, D-31.
  */
 
 import { useState, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import Reveal from '../motion/Reveal';
 import TripForm from '../trip-form/TripForm';
 import { useTrip } from '../../state/TripProvider';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+
+const MapView = dynamic(() => import('../map/MapView'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full flex flex-col items-center justify-center bg-surface-1 text-text-muted gap-3 p-6 select-none">
+      <div className="w-8 h-8 rounded-full border-2 border-cobalt border-t-transparent animate-spin" />
+      <span className="font-body text-xs uppercase tracking-wider text-text-faint">
+        Loading Map Engine…
+      </span>
+    </div>
+  ),
+});
 
 export default function PlannerSection() {
   const { state } = useTrip();
@@ -213,55 +227,13 @@ export default function PlannerSection() {
             </div>
           </Reveal>
 
-          {/* Right Column: Map Frame Placeholder (Desktop flex-1, Mobile order-1 ~45vh) */}
+          {/* Right Column: Rounded Map Frame (Desktop flex-1, Mobile order-1 ~45vh) */}
           <Reveal
             delay={80}
             className="w-full flex-1 order-1 lg:order-2 h-[45vh] lg:h-auto min-h-[400px] flex flex-col"
           >
-            <div className="bg-surface-1 border border-border-subtle rounded-[24px] w-full h-full relative overflow-hidden flex flex-col items-center justify-center p-6 text-center group">
-              {/* Decorative Subtle Grid Backdrop */}
-              <div
-                className="absolute inset-0 opacity-15 pointer-events-none"
-                style={{
-                  backgroundImage:
-                    'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.2) 1px, transparent 0)',
-                  backgroundSize: '24px 24px',
-                }}
-              />
-
-              {/* Map Placeholder Content */}
-              <div className="relative z-10 max-w-sm space-y-3">
-                <div className="w-12 h-12 mx-auto rounded-2xl bg-surface-2 border border-border-strong flex items-center justify-center text-cobalt">
-                  <svg
-                    className="w-6 h-6"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21" />
-                    <line x1="9" y1="3" x2="9" y2="18" />
-                    <line x1="15" y1="6" x2="15" y2="21" />
-                  </svg>
-                </div>
-
-                <div>
-                  <h3 className="font-display text-lg uppercase tracking-wider text-white">
-                    MAP VIEWPORT
-                  </h3>
-                  <p className="font-body text-xs text-text-muted mt-1 leading-relaxed">
-                    WebGL map engine (MapLibre GL JS + OpenFreeMap vector tiles) with GPU heatmap overlay.
-                  </p>
-                </div>
-
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-2 border border-border-subtle text-[11px] font-mono tabular text-text-faint">
-                  <span>OpenFreeMap Positron</span>
-                  <span>•</span>
-                  <span>Light Style</span>
-                </div>
-              </div>
+            <div className="bg-surface-1 border border-border-subtle rounded-[24px] w-full h-full relative overflow-hidden shadow-2xl">
+              <MapView />
             </div>
           </Reveal>
         </div>
