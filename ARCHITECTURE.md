@@ -47,7 +47,7 @@ A web app that helps a truck driver pick the safest of three routes using **weat
 Everything in Section 1, plus: loading/error states, responsive layout, README and docs, unit tests for domain logic.
 
 ### Out of scope (do NOT build)
-User accounts/login · database or persistence of trips · saved/shared trips · real-time traffic UI · turn-by-turn directions · hours-of-service/rest-stop modeling · multiple trucks/profiles · metric units toggle · dark mode · i18n · weather alerts feed · push notifications · analytics · admin panel.
+User accounts/login · database or persistence of trips · saved/shared trips · real-time traffic UI · turn-by-turn directions · hours-of-service/rest-stop modeling · multiple trucks/profiles · metric units toggle · dark/light toggle (the planner section is dark by design; no toggle) · i18n · weather alerts feed · push notifications · analytics · admin panel.
 
 ---
 
@@ -81,6 +81,14 @@ Each decision has an id. Do not change a locked decision without recording a new
 | D-22 | Region | US-focused: geocode suggestions restricted to `countryCode:USA`; units are mph, in/hr, lb, miles. | Spec units are US. |
 | D-23 | Route count | Request `alternatives=2` (→ up to 3 routes). If fewer than 3 are returned, show what exists and add notice `FEWER_THAN_3_ROUTES`. | Cannot manufacture routes that do not exist. |
 | D-24 | Truck weight for routing | Pass HERE `truck[grossWeight]` = `(load_weight_lb + TRUCK_TARE_LB) × 0.45359237` kg, capped at 80,000 lb. `TRUCK_TARE_LB = 32000`. | Routing needs gross weight; spec input is load weight. Documented assumption. |
+| D-25 | Landing hero | Page `/` opens with a scroll-scrubbed video hero (mechanics from `docs/HERO_SPEC.md`), ported to a React client component. Directly after it comes the planner section (`#planner`). | Strong first impression; hero explains the product, planner does the work. |
+| D-26 | Hero copy and brand | Keep the hero's visuals and mechanics. Replace the "KV freight services" copy with our product copy (Section 25.2). Brand text is a placeholder constant `BRAND_NAME = "HAULCAST"` in `heroConfig.js`. | The hero must describe this app, not a fictional freight group. |
+| D-27 | Theme | White `#fff`, ink `#111`, cobalt `#2f63ff`, giant-letter grey `#e9e9e9`. Fonts: **Anton** (display), **Archivo** (body, variable), **JetBrains Mono** (numbers/data), loaded with `next/font/google`. The planner section is dark ink by design (continues the hero's black band). | One cohesive look from hero to app. |
+| D-28 | Motion system | Motion tokens in `lib/motion.js` + CSS variables. Animate **transform and opacity only**. No animation library (CSS transitions + `requestAnimationFrame`). `prefers-reduced-motion` disables all non-essential motion. **No animation or transition on the heatmap slider data path.** | Smoothness and bundle size (40% UI/performance score). |
+| D-29 | Hero media | Use the CloudFront URLs from `HERO_SPEC.md`, stored only in `heroConfig.js`. 720p at ≤ 900 px wide or when `navigator.connection.saveData` is true. Self-hosting under `public/media/` is a possible later swap (single constant change). | Spec-provided assets; one place to change. |
+| D-30 | Hero performance | One `requestAnimationFrame` loop, running **only while the hero track is near the viewport** (IntersectionObserver). Seek guard: do not set `currentTime` while `video.seeking` and only when the difference > 1/60 s. | Avoid wasting CPU while the user uses the planner/map. |
+| D-31 | Map style | Default `https://tiles.openfreemap.org/styles/positron` (light, low-noise, makes route/heatmap colors pop). Verify the style exists; fall back to `liberty`. Map sits inside a rounded frame on the dark section. | Contrast for heatmap and risk colors. |
+| D-32 | Recorder mode | The hero's `?rec=1` recorder mode and `window.__recTime` are **not implemented**. | Not needed for the assessment. |
 
 ---
 
@@ -88,13 +96,15 @@ Each decision has an id. Do not change a locked decision without recording a new
 
 | Layer | Choice |
 |---|---|
-| Frontend | Next.js (latest stable, App Router), React, **JavaScript**, Tailwind CSS (latest), MapLibre GL JS, ESLint, Vitest |
+| Frontend | Next.js (latest stable, App Router), React, **JavaScript**, Tailwind CSS (latest), MapLibre GL JS, `next/font/google` (Anton, Archivo, JetBrains Mono), ESLint, Vitest |
 | Backend | Python **3.12**, Django (latest stable), Django REST Framework, `httpx`, `flexpolyline` (HERE flexible polyline decoder), `django-cors-headers`, `gunicorn` (fallback host), `pytest`, `pytest-django`, `ruff` |
 | Routing + geocoding | HERE Routing v8, HERE Geocoding & Search v1 |
 | Weather | Open-Meteo Forecast API |
 | Map tiles/style | OpenFreeMap (default), overridable by env |
 | Cache | Django cache framework: `LocMemCache` default; optional Redis via `REDIS_URL` |
 | Hosting | Vercel (frontend project + backend project) |
+
+`next/font/google` (Anton, Archivo, JetBrains Mono). **No** animation libraries (no framer-motion/GSAP).
 
 No numpy/shapely/pandas on the backend. Geometry is small pure-Python code (keeps bundle small and logic readable).
 
@@ -169,6 +179,9 @@ No numpy/shapely/pandas on the backend. Geometry is small pure-Python code (keep
 - **API data keeps `snake_case` keys exactly as received.** Do not rename/camelCase API payloads. Local variables and props are `camelCase`.
 - One component per file; default export = the component.
 - No `any`-style shortcuts: shapes are declared with JSDoc `@typedef` in `src/lib/types.js`.
+- Hero CSS classes are prefixed `hero-`; hero CSS variables are prefixed `--hero-`. Hero styles live in exactly one file: `components/hero/hero.css`.
+- Theme tokens: `--color-*`; surface tokens: `--surface-*`; motion tokens: `--motion-*`. Defined once in `app/globals.css`.
+- Motion components live in `components/motion/` (`Reveal.jsx`, `CountUp.jsx`); shared constants in `lib/motion.js`.
 
 ### 6.4 URLs and JSON
 - Endpoints: `/api/v1/<noun>` lowercase, hyphen-free single words where possible.
@@ -206,7 +219,8 @@ spotter-truck-routing/                      ← repo root
 │   ├── DECISIONS.md                        ← decision log; agent appends deviations here
 │   ├── DEPLOYMENT.md                       ← Vercel (x2) + Render fallback steps
 │   ├── RISK_ENGINE.md                      ← thresholds, boundaries, load rules, worked examples
-│   └── LOOM_SCRIPT.md                      ← walkthrough outline
+│   ├── LOOM_SCRIPT.md                      ← walkthrough outline
+│   └── HERO_SPEC.md                        ← verbatim hero prompt (reference)
 │
 ├── backend/                                ← Django project root (Vercel project #2)
 │   ├── manage.py
@@ -290,72 +304,49 @@ spotter-truck-routing/                      ← repo root
     └── src/
         ├── app/
         │   ├── layout.jsx
-        │   ├── page.jsx
-        │   └── globals.css
+        │   ├── page.jsx                            ← <ScrollHero/> then <PlannerSection/>
+        │   ├── fonts.js                            ← next/font setup (Anton, Archivo, JetBrains Mono)
+        │   └── globals.css                         ← theme tokens, base styles, motion tokens
         ├── components/
+        │   ├── hero/
+        │   │   ├── ScrollHero.jsx                  ← track, scene, video, giant letters, band
+        │   │   ├── HeroNav.jsx
+        │   │   ├── HeroStrip.jsx                   ← headline block + 5 cards
+        │   │   ├── HeroCard.jsx
+        │   │   ├── HeroIcons.jsx                   ← 5 line icons (inline SVG)
+        │   │   ├── heroConfig.js                   ← BRAND_NAME, copy, media URLs, timing constants
+        │   │   └── hero.css
+        │   ├── motion/
+        │   │   ├── Reveal.jsx                      ← scroll-in reveal wrapper (IntersectionObserver)
+        │   │   └── CountUp.jsx                     ← number count-up
         │   ├── layout/
-        │   │   ├── AppShell.jsx
-        │   │   ├── Header.jsx
-        │   │   └── Footer.jsx
-        │   ├── trip-form/
-        │   │   ├── TripForm.jsx
-        │   │   ├── LocationInput.jsx
-        │   │   ├── DepartureInput.jsx
-        │   │   ├── LoadWeightInput.jsx
-        │   │   └── IntervalSelect.jsx
-        │   ├── results/
-        │   │   ├── ResultsPanel.jsx
-        │   │   ├── RecommendationBanner.jsx
-        │   │   ├── RouteCard.jsx
-        │   │   ├── RouteSummaryStats.jsx
-        │   │   ├── RiskBadge.jsx
-        │   │   ├── RiskBreakdownBar.jsx
-        │   │   ├── CheckpointTable.jsx
-        │   │   ├── NoticesPanel.jsx
-        │   │   ├── ResultsSkeleton.jsx
-        │   │   └── ErrorPanel.jsx
-        │   ├── map/
-        │   │   ├── MapView.jsx
-        │   │   ├── MapLegend.jsx
-        │   │   ├── HeatmapControls.jsx
-        │   │   └── CheckpointPopup.jsx
-        │   └── ui/
-        │       ├── Button.jsx
-        │       ├── Spinner.jsx
-        │       └── Slider.jsx
-        ├── map/                            ← framework-free MapLibre helpers
-        │   ├── mapStyle.js
-        │   ├── geojson.js
-        │   ├── routeLayers.js
-        │   ├── checkpointLayers.js
-        │   ├── heatmapLayer.js
-        │   └── bounds.js
+        │   │   ├── PlannerSection.jsx              ← #planner: heading, sidebar, map frame (replaces AppShell)
+        │   │   └── Footer.jsx                      ← attribution
+        │   ├── trip-form/    (TripForm, LocationInput, DepartureInput, LoadWeightInput, IntervalSelect)
+        │   ├── results/      (ResultsPanel, RecommendationBanner, RouteCard, RouteSummaryStats, RiskBadge,
+        │   │                  RiskBreakdownBar, CheckpointTable, NoticesPanel, ResultsSkeleton, ErrorPanel)
+        │   ├── map/          (MapView, MapLegend, HeatmapControls, CheckpointPopup)
+        │   └── ui/           (Button, Spinner, Slider)
+        ├── map/              (mapStyle, geojson, routeLayers, checkpointLayers, heatmapLayer, bounds, routeAnimation)
         ├── hooks/
         │   ├── useDebouncedValue.js
         │   ├── useGeocodeSuggest.js
         │   ├── usePlanTrip.js
         │   ├── useMapInstance.js
-        │   └── useHeatmapFrame.js
-        ├── state/
-        │   ├── TripProvider.jsx
-        │   ├── tripReducer.js
-        │   └── selectors.js
+        │   ├── useHeatmapFrame.js
+        │   ├── useHeroScroll.js                    ← scroll → video time, strip/letters transforms
+        │   └── useReducedMotion.js
+        ├── state/            (TripProvider, tripReducer, selectors)
         └── lib/
-            ├── api/
-            │   ├── client.js
-            │   ├── plan.js
-            │   ├── geocode.js
-            │   └── ApiError.js
-            ├── format/
-            │   ├── time.js
-            │   ├── distance.js
-            │   ├── weight.js
-            │   └── weather.js
-            ├── risk/
-            │   └── riskLevels.js
+            ├── api/          (client, plan, geocode, ApiError)
+            ├── format/       (time, distance, weight, weather)
+            ├── risk/riskLevels.js
+            ├── motion.js
             ├── constants.js
             └── types.js
 ```
+
+`components/layout/AppShell.jsx` and `Header.jsx` from the old tree are **removed** (the hero nav replaces the header). `map/routeAnimation.js` is new (Section 25.5).
 
 Nothing may be added to or moved in this tree without updating this section.
 
@@ -830,10 +821,10 @@ Set `maxDuration` for the Django entrypoint (verify the exact `functions` key fo
 
 ## 17. Frontend architecture
 
-### 17.1 Page layout (`app/page.jsx` → `AppShell`)
-- **Desktop:** left sidebar (≈ 420 px): `TripForm` on top, `ResultsPanel` below (scrollable). Right: full-height `MapView` with overlay `HeatmapControls` (bottom) and `MapLegend` (corner).
-- **Mobile:** map on top (≈ 45 vh), form/results below in a scrolling sheet. Slider remains reachable.
-- Footer attribution (small, in-map overlay): "Weather data by Open-Meteo.com · Map © OpenFreeMap © OpenStreetMap contributors".
+### 17.1 Page layout (`app/page.jsx` → `ScrollHero` + `PlannerSection`)
+- `/` is one long page: **(1) `ScrollHero`** (sticky scene scroll story) then **(2) `PlannerSection`** (`id="planner"`).
+- `PlannerSection`: ink `#111` background. Top: eyebrow + large Anton heading "PLAN YOUR ROUTE" (reveal animation). Below: **desktop** two columns: left sidebar (~440 px: `TripForm` then `ResultsPanel`, internally scrollable) and right a rounded (24 px) map frame; section height ≈ 100vh minus heading. **Mobile**: map first (~45 vh), form/results below.
+- Footer attribution inside the section bottom: "Weather data by Open-Meteo.com · Map © OpenFreeMap © OpenStreetMap contributors".
 
 ### 17.2 State (`state/`)
 `TripProvider` uses `useReducer`. State shape:
@@ -865,7 +856,7 @@ Actions: `FORM_CHANGED`, `PLAN_REQUESTED`, `PLAN_SUCCEEDED`, `PLAN_FAILED`, `ROU
 - `ResultsSkeleton` while loading; `ErrorPanel` maps error codes to friendly text with a retry button.
 
 ### 17.5 Map (`components/map/MapView.jsx`, `src/map/*`, `hooks/useMapInstance.js`)
-- MapLibre instance created once in a client component (dynamic import with `ssr: false`); style from `NEXT_PUBLIC_MAP_STYLE_URL` (default OpenFreeMap "liberty" style).
+- MapLibre instance created once in a client component (dynamic import with `ssr: false`); default style per D-31 from `NEXT_PUBLIC_MAP_STYLE_URL` (`https://tiles.openfreemap.org/styles/positron`, light, low-noise, fallback to `liberty`). Map sits inside a rounded (24 px) frame on the dark section.
 - **Sources** (all GeoJSON; update with `setData`, never remove/re-add layers on interaction):
   - `routes-src` — one `LineString` feature per route with props `route_id, color_key, is_recommended`.
   - `checkpoints-src` — one `Point` per checkpoint of **all routes** with props `route_id, index, level, label`.
@@ -874,8 +865,13 @@ Actions: `FORM_CHANGED`, `PLAN_REQUESTED`, `PLAN_SUCCEEDED`, `PLAN_FAILED`, `ROU
   - Selected route: full opacity, 5 px; other routes: 55 % opacity, 3 px. Recommended route gets a distinct outline.
   - Checkpoints: circle color via `match` on `level` (palette in `riskLevels.js`); non-selected routes' checkpoints are hidden below zoom 7 and shown small otherwise; selected route's checkpoints always shown.
   - Hover → pointer cursor; click → select route/checkpoint and open `CheckpointPopup` (mile, ETA, weather incl. gusts, risk with driver and load rule text).
-- Fit bounds to all routes after each successful plan (`bounds.js`), with padding for the sidebar.
+- Fit bounds to all routes after each successful plan (`bounds.js`), with padding for the sidebar (`duration: 900`, easing from `--motion-ease`).
 - Heatmap layer: `heatmap-weight` from `intensity`, radius interpolated by zoom, color ramp transparent → yellow → orange → red → dark red, opacity 0.75, placed **below** route lines.
+- **Animations (Section 25.5):**
+  - Route draw-in: on a new plan only, reveal each route polyline progressively over ~900 ms (ease-out, staggered 120 ms, `map/routeAnimation.js`). Skip when reduced motion.
+  - Selected checkpoint: DOM marker with a CSS pulsing ring (transform scale + opacity loop) at the selected checkpoint; removed when deselected.
+  - Heatmap visibility: `heatmap-opacity-transition` ~300 ms when toggling visibility.
+  - **No animation or transition on the heatmap slider data path.**
 - **Slider performance (critical, 40% of grade):**
   - All 49 hours are already in memory; the slider only rebuilds one GeoJSON `FeatureCollection` for hour `h` (≤ ~1000 features) and calls `setData`, throttled with `requestAnimationFrame`. No network call on slider move.
   - `useHeatmapFrame` memoizes per `(hour, metric)` feature collections (LRU of 8).
@@ -889,18 +885,33 @@ Actions: `FORM_CHANGED`, `PLAN_REQUESTED`, `PLAN_SUCCEEDED`, `PLAN_FAILED`, `ROU
 - Departure conversion: `departure_local` (from `datetime-local`) → `new Date(value).toISOString()`-style ISO with offset before sending (documented in `format/time.js`).
 
 ### 17.7 Styling rules
-- Tailwind utility classes; no CSS-in-JS. Risk palette lives in **one place** (`lib/risk/riskLevels.js`):
 
-| Level | Color |
-|---|---|
-| LOW | `#2E9E5B` |
-| MODERATE | `#F2C94C` |
-| HIGH | `#F2994A` |
-| SEVERE | `#EB5757` |
-| NO_TRAVEL | `#6B1D1D` |
+**Theme tokens (defined once in `globals.css`):**
+```css
+--color-white:#fff; --color-ink:#111; --color-cobalt:#2f63ff; --color-giant:#e9e9e9;
+--surface-1:#161616; --surface-2:#1d1d1d; --surface-3:#262626;
+--border-subtle:rgba(255,255,255,.12); --border-strong:rgba(255,255,255,.28);
+--text-primary:#fff; --text-muted:rgba(255,255,255,.62); --text-faint:rgba(255,255,255,.4);
+--motion-fast:150ms; --motion-base:280ms; --motion-slow:600ms;
+--motion-ease:cubic-bezier(.22,1,.36,1); --motion-ease-inout:cubic-bezier(.4,.05,.55,.95);
+```
+Tailwind v4 `@theme` maps these to utilities; font utilities: `font-display` (Anton), `font-body` (Archivo), `font-mono` (JetBrains Mono).
 
-- Route colors: A `#2F80ED`, B `#9B51E0`, C `#00A3A3`. Risk never relies on color alone: always show the text label/badge.
-- Accessibility: labels on inputs, focus rings, `aria-live` region announcing loading/success/error, keyboard-operable slider.
+**Typography rules:** Anton uppercase for big headings/titles; Archivo for UI/body; **all numbers with units (miles, mph, in/hr, lb, times, durations) use JetBrains Mono with `tabular-nums`**.
+
+**Components on the dark section:** surfaces `--surface-1/2`, 1 px `--border-subtle`, radius 16–24 px, text `--text-primary/muted`. Primary button: white pill with ink text (hover cobalt); secondary: outline pill. Focus ring: 2 px cobalt + 2 px offset. Inputs: `--surface-2`, border `--border-subtle`, focus border cobalt.
+
+**Risk palette (unchanged values) in `riskLevels.js`, now with `textColor` and `outline`:**
+
+| Level | Fill | Text on fill | Extra |
+|---|---|---|---|
+| LOW | `#2E9E5B` | `#111` | |
+| MODERATE | `#F2C94C` | `#111` | |
+| HIGH | `#F2994A` | `#111` | |
+| SEVERE | `#EB5757` | `#111` | |
+| NO_TRAVEL | `#6B1D1D` | `#fff` | 1 px `rgba(255,255,255,.4)` outline so it is visible on dark surfaces |
+
+Route colors: A `#2F80ED`, B `#9B51E0`, C `#00A3A3`. Risk never relies on color alone (always a text label). All text must meet WCAG AA contrast on its background. Accessibility: labels on inputs, focus rings, `aria-live` region announcing loading/success/error, keyboard-operable slider.
 
 ### 17.8 `next.config.mjs`
 ```js
@@ -914,7 +925,7 @@ async rewrites() {
 ```
 BACKEND_URL=http://127.0.0.1:8000
 NEXT_PUBLIC_API_BASE_URL=
-NEXT_PUBLIC_MAP_STYLE_URL=https://tiles.openfreemap.org/styles/liberty
+NEXT_PUBLIC_MAP_STYLE_URL=https://tiles.openfreemap.org/styles/positron
 ```
 
 ---
@@ -980,31 +991,25 @@ NEXT_PUBLIC_MAP_STYLE_URL=https://tiles.openfreemap.org/styles/liberty
 
 Each task lists **Scope**, **Files**, and **Done when**. Do them in order.
 
-| ID | Task | Files | Done when |
-|---|---|---|---|
-| T-01 | Repo scaffold | root files, `docs/` stubs, `backend/` Django skeleton (settings per 16.1, `/api/v1/health`), `frontend/` via `create-next-app` (JS, App Router, Tailwind, ESLint) | `GET /api/v1/health` works locally; `npm run dev` shows blank page; lint passes both sides. |
-| T-02 | Domain constants, enums, models, units | `domain/constants.py`, `enums.py`, `models.py`, `units.py` | Imports clean; unit tests for `units`. |
-| T-03 | Risk classifier | `domain/risk.py`, `tests/domain/test_risk.py`, `docs/RISK_ENGINE.md` | All Section 9.5 cases pass. |
-| T-04 | Geometry | `domain/geometry.py`, tests | Haversine, cumulative, interpolation, simplify tested. |
-| T-05 | Sampling + ETA | `domain/sampling.py`, `eta.py`, tests | Segment sums == total; last checkpoint == destination; ETA rounding tested. |
-| T-06 | Aggregation + ranking | `domain/aggregation.py`, `ranking.py`, tests | Section 13.3 tests pass. |
-| T-07 | Heatmap builder | `domain/heatmap.py`, tests | 49-hour arrays; load-aware; truncation flag. |
-| T-08 | HTTP helper + HERE routing client | `clients/http.py`, `here_routing.py`, fixture, tests | Parses real recorded response into `RouteGeometry`; errors typed. |
-| T-09 | HERE geocoding client | `clients/here_geocoding.py`, fixture, tests | Suggestions parsed; US restriction applied. |
-| T-10 | Open-Meteo client | `clients/open_meteo.py`, fixture, tests | List/object handling, chunking, null → `WeatherDataError`. |
-| T-11 | Cache + weather grid | `planner/cache.py`, `weather_grid.py` | Dedupe, date range, cap logic tested. |
-| T-12 | Trip planner + presenters | `planner/trip_planner.py`, `presenters.py`, tests with fake clients | End-to-end plan with fakes matches Section 15 shape. |
-| T-13 | API layer | `api/*`, `config/urls.py`, endpoint tests | Validation, error format, throttle, `/plan` and `/geocode/suggest` work against fakes; then manual run with real keys. |
-| T-14 | Frontend foundation | `lib/*`, `state/*`, `hooks/useDebouncedValue.js`, `next.config.mjs` rewrite | Reducer + format tests pass; API client talks to local backend. |
-| T-15 | Trip form | `components/trip-form/*`, `hooks/useGeocodeSuggest.js`, `usePlanTrip.js` | Valid submit calls `/plan`; invalid blocked; autosuggest works. |
-| T-16 | Map base + routes | `map/mapStyle.js`, `geojson.js`, `routeLayers.js`, `bounds.js`, `MapView.jsx`, `useMapInstance.js` | 3 routes render, select, fit bounds. |
-| T-17 | Checkpoints + popup | `checkpointLayers.js`, `CheckpointPopup.jsx` | Risk-colored points; click shows ETA/weather/risk. |
-| T-18 | Results panel | `components/results/*` | Cards, banner, breakdown bar, checkpoint table, notices, skeleton, errors; row click flies to checkpoint. |
-| T-19 | Heatmap + slider | `heatmapLayer.js`, `useHeatmapFrame.js`, `HeatmapControls.jsx`, `MapLegend.jsx`, `ui/Slider.jsx` | Slider 0–48 scrubs smoothly (budgets in 17.5); metric toggle works. |
-| T-20 | Responsive + a11y + polish | layout, focus states, aria-live | Mobile layout usable; keyboard flow works. |
-| T-21 | Performance pass | profile slider, response size, route simplification | Budgets in 17.5 met; gzip enabled; no unnecessary re-renders. |
-| T-22 | Deploy | `backend/vercel.json`, Vercel projects, env vars, `docs/DEPLOYMENT.md` | Live URL works end-to-end; fallback documented. |
-| T-23 | Docs + Loom prep | `README.md`, `docs/*`, `LOOM_SCRIPT.md` | Section 21 checklist complete. |
+| ID | Task | Done when |
+|---|---|---|
+| T-01…T-13 | (complete — backend) | — |
+| T-14 | Merge this patch into `ARCHITECTURE.md`; confirm `docs/HERO_SPEC.md` exists; update `docs/DECISIONS.md` | Doc merged, patch file deleted, docs only. |
+| T-15 | Frontend foundation + theme tokens + fonts + motion tokens | Reducer/format/riskLevels/motion tests pass; fonts and tokens render on a test page. |
+| T-16 | Hero core (scene, video scrub, band, giant letters, strip with plain cards) | Scrub, strip travel, letters-behind-truck all work. |
+| T-17 | Hero finish (icons, card reveal gradient, readout, pill, phone layout, reduced motion) | Hero matches 25.6 acceptance on desktop and phone. |
+| T-18 | Page composition, PlannerSection shell, motion primitives | Hero flows into planner; Reveal/CountUp work. |
+| T-19 | Trip form (themed) | Valid submit calls `/plan`. |
+| T-20 | Map base + routes + route draw-in animation | 3 routes animate in and are selectable. |
+| T-21 | Checkpoints + popup + selected pulse | Risk-colored checkpoints and popup. |
+| T-22 | Results panel (themed, animated) | Cards/banner/table synced with map. |
+| T-23 | Heatmap + slider | Smooth slider within budgets. |
+| T-24 | Motion polish pass | Every animation in 25.5 present, reduced-motion verified. |
+| T-25 | Responsive + accessibility | 375/768/1440 verified, keyboard flow works. |
+| T-26 | Performance pass (map, heatmap, hero) | Budgets in 17.5 and 25.3 met. |
+| T-27 | Deploy | Live URL works end to end. |
+| T-28 | Docs + Loom prep | Section 21 complete (add hero section to README). |
+| T-29 | Final audit | Section 24 + 25.6 all pass. |
 
 ---
 
@@ -1028,3 +1033,93 @@ Each task lists **Scope**, **Files**, and **Done when**. Do them in order.
 - [ ] No DB; caching works; weather failures surface as clear errors.
 - [ ] Unit tests pass; lint passes; layering rule respected.
 - [ ] README, docs, hosted URL, GitHub repo, Loom recorded.
+- [ ] Hero acceptance (25.6) passes on desktop and phone.
+- [ ] Theme tokens used everywhere; no hard-coded colors outside `globals.css`, `riskLevels.js`, `hero.css`.
+- [ ] Reduced-motion mode verified.
+
+---
+
+## 25. Landing hero, theme, motion
+
+### 25.1 Page composition
+`app/page.jsx` renders `<ScrollHero />` then `<PlannerSection />`. The hero's final frame ends with the black band at the bottom of the viewport; `PlannerSection` background is `#111`, so the band flows into the planner with no visible seam as the white part of the scene scrolls away. The hero pill and nav links smooth-scroll to `#planner` (instant when reduced-motion is on). `#planner` has `scroll-margin-top: 0`.
+
+### 25.2 Hero port rules (React)
+**Source of mechanics:** `docs/HERO_SPEC.md` — track height `(1 + A + B)` viewports, A = 2.4, B from strip width, sticky scene, video framing math (cover vs portrait), `--edge-px`, giant letters with `mix-blend-mode: darken`, strip and letters translate formulas, card gradient reveal, settled flag `--ph`, speed readout, phone layout.
+
+**Port rules:**
+- A single client component tree: `ScrollHero` (owns refs and the `useHeroScroll` hook) → `HeroNav`, `HeroStrip` → `HeroCard`. No framework-external globals; no `document.write`.
+- All DOM reads/writes (video `currentTime`, CSS variables, transforms) happen in the rAF loop via refs, **not React state**. React must not re-render on scroll.
+- Layout measurements (strip width, letters width, viewport) are recomputed on mount, on `resize`/`orientationchange`, and after fonts load (`document.fonts.ready`). Track height is set via a CSS variable on the track element. Before JS runs, the track has a sensible fallback height (e.g. `min-height: 600vh`) to limit layout shift.
+- The `<video>`: `muted`, `playsInline`, `preload="auto"`, `poster` set, `disablePictureInPicture`, `aria-hidden="true"`; never `play()`ed or looped.
+- Source selection: 720p if viewport ≤ 900 px or `navigator.connection?.saveData`; otherwise 1080p.
+- `?rec=1` recorder mode: **not implemented** (D-32).
+
+**Content overrides (replace the KV freight copy; everything else stays):**
+
+| Element | Value |
+|---|---|
+| Brand (nav left) | `BRAND_NAME` = "HAULCAST" (placeholder; one constant) |
+| Nav right | text link "→ Planner" (to `#planner`) and outline pill "Plan a route" (to `#planner`). Remove "Menu" and "Follow". |
+| Giant letters | "SAFER ROUTES" (12 characters, same fit as "OUR SERVICES") |
+| Bottom pill | "Plan a route" (scrolls to `#planner`) |
+| Readout | "NN MPH" (same smoothed scroll-speed logic, label changed) |
+| Strip headline | line 1 "KNOW YOUR ROUTE." · line 2 "MILE BY MILE." · line 3 "BEFORE YOU ROLL." (line 3 cobalt) |
+| Paragraph 1 | "We pull truck-specific route options, then check the forecast at your estimated arrival time at every checkpoint along the way." |
+| Paragraph 2 | "Wind, rain and snow are scored against your load weight, so the recommendation fits your truck, not a generic car." |
+
+**Five cards** (title is two lines in Anton; icon is a white line icon in `HeroIcons.jsx`):
+| # | Title (2 lines) | Icon | Body |
+|---|---|---|---|
+| 1 | TRUCK / ROUTES | route (two pins joined by a path) | "Three truck-profile route options per trip, compared side by side on one map." |
+| 2 | WEATHER AT / EVERY MILE | cloud with rain lines | "Wind, rain and snow forecast for your arrival time, every 10, 25 or 50 miles." |
+| 3 | LOAD-AWARE / RISK RULES | weight/scale | "Heavier loads trigger stricter wind limits, scored from Low to No Travel." |
+| 4 | SMART / RECOMMENDATION | shield with check | "Fewest Severe and High miles first, then average risk, then travel time." |
+| 5 | 48-HOUR / HEATMAP | stacked layers | "Scrub a forecast heatmap along your corridor to find the safest window." |
+
+No real brands or logos anywhere.
+
+### 25.3 Hero technical requirements
+- **One rAF loop**, started when the track is within ~1 viewport of the screen (IntersectionObserver with `rootMargin`) and stopped when it is not. Never two loops.
+- **Clip time:** `q = clamp(scrollY / (A·vh))`; target = `q × (duration − 1/48)`; ease `cur += (target − cur) × 0.2`; set `currentTime` only if `!video.seeking` and `|Δ| > 1/60`; re-seek on `seeked`.
+- **Strip / letters / readout / `--ph`:** exactly as in `HERO_SPEC.md` ("Scroll mapping").
+- **Reduced motion:** ease factor becomes 1 (no smoothing), pill fade/rise disabled, smooth-scroll disabled. Scrubbing itself stays (it is user-driven).
+- **Resize safety:** no stale measurements; no horizontal scroll at any width (`overflow-x: clip` on the track where needed).
+- **Blend trick:** giant letters sit **behind** the vehicles through `mix-blend-mode: darken` on a `#e9e9e9` text over the white parts of the clip; do not add opacity transitions to the video.
+- **Phones (< 768 px or portrait):** layout rules from `HERO_SPEC.md` "Phones".
+- **Perf budget:** no long tasks > 50 ms in the loop; at most one style write batch per frame; `will-change: transform` only on strip and letters.
+- **iOS Safari:** verify scrubbing works with `muted playsInline preload="auto"`; if the first seek does not render, document the workaround in `docs/DECISIONS.md` (do not play the video).
+- **Accessibility:** decorative layers `aria-hidden`; nav links and pill are real `<a>` elements with visible focus; the cards are real text (selectable).
+
+### 25.4 Planner section design
+- Eyebrow (Archivo, uppercase, tracked) "THE PLANNER" + heading "PLAN YOUR ROUTE" (Anton, large, white). A thin cobalt rule animates under the heading on first reveal.
+- Sidebar panel: `--surface-1`, radius 24, internal padding 20–24 px. Form fields stacked with generous spacing; the interval control is a segmented pill; the submit button is a white pill ("Find safest route") with a cobalt progress sweep while loading.
+- Map frame: radius 24, 1 px `--border-subtle`, overlay controls use `--surface-1` with blur-free solid backgrounds (no `backdrop-filter`, for performance).
+- Empty state (before first plan): short illustrated instruction with three numbered steps in mono numerals.
+
+### 25.5 Motion system (all must respect `prefers-reduced-motion`)
+Tokens: `--motion-fast/base/slow`, `--motion-ease`, `--motion-ease-inout`; JS mirror in `lib/motion.js` (same numbers). Animate **transform and opacity only**.
+
+| Where | Animation |
+|---|---|
+| `Reveal` (generic) | Fade + translateY(16px → 0), `--motion-slow`, ease; optional stagger delay prop (default 60 ms steps). Triggers once via IntersectionObserver. |
+| Planner heading | Words slide up inside an overflow-hidden mask; cobalt rule scales from 0 to 100 % width (origin left). |
+| Sidebar panel / map frame | Reveal on first view, 80 ms stagger between them. |
+| Autocomplete listbox | Fade + 6 px slide, `--motion-fast`; options highlight with background transition. |
+| Submit button | Press scale 0.98; loading: cobalt bar sweeps (translateX loop) inside the pill; text switches to "Planning…". |
+| Results appear | `ResultsSkeleton` shimmer (translateX gradient) while loading; on success banner then route cards stagger in (50 ms steps, translateY 16 → 0 + fade). |
+| Recommendation banner | Cobalt underline sweeps under the recommended route name once. |
+| `RiskBreakdownBar` | Segments grow from `scaleX(0)` to full, origin left, 600 ms ease, staggered by level. |
+| Numbers | `CountUp` for distance, duration, avg risk (600 ms, ease-out, mono tabular numerals, final value exact). |
+| Route card selection | Border color transition (cobalt) + 2 px lift (`translateY(-2px)`), `--motion-fast`. |
+| Map: route draw-in | On a **new plan only**: reveal each route polyline progressively by feeding a growing prefix of its coordinates to the source with rAF over ~900 ms (ease-out), routes staggered 120 ms; skip when reduced motion; do not run on selection changes. `map/routeAnimation.js`. |
+| Map: fit bounds | `easeTo/fitBounds` with `duration: 900`, easing from `--motion-ease` (0 when reduced motion). |
+| Map: selected checkpoint | A DOM marker with a CSS pulsing ring (transform scale + opacity loop) at the selected checkpoint; removed when deselected. |
+| Map: heatmap visibility | `heatmap-opacity-transition` ~300 ms when toggling visibility. **No transition on slider data updates.** |
+| Hero | Per `HERO_SPEC.md` plus pill fade/rise at settle. |
+
+### 25.6 Acceptance
+**Hero (desktop 1440×960):** on load the stacker holds the container under the nav; scrolling lifts, turns and loads the truck, then pulls back until the truck sits on the black band; "SAFER ROUTES" passes behind the truck (no letters over the container or cab); the headline enters from the right followed by five cards sweeping blue to white; the MPH number follows scroll speed; scrolling back reverses everything; the pill and nav links scroll to `#planner`; the black band flows into the planner section without a seam.
+**Hero (phone):** no horizontal scroll; framing per spec; strip and cards readable.
+**Theme:** every screen uses the tokens; fonts load without layout jump; numbers use mono tabular figures.
+**Motion:** each row of 25.5 present; reduced-motion shows the final states with no motion; the slider path stays animation-free and smooth.
