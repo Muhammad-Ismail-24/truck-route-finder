@@ -16,6 +16,15 @@ class LatLng:
 
 
 @dataclass(frozen=True, slots=True)
+class Place:
+    """A geocoded place suggestion with human-readable label and coordinates."""
+
+    label: str
+    lat: float
+    lng: float
+
+
+@dataclass(frozen=True, slots=True)
 class RouteGeometry:
     """Full-resolution geometry returned by the HERE routing client."""
 

@@ -1,0 +1,102 @@
+{
+  "_comment": "SYNTHETIC FIXTURE based on HERE Geocoding & Search autosuggest API specification. Will be replaced by real recorded response.",
+  "items": [
+    {
+      "title": "Chicago, IL, United States",
+      "id": "here:cm:namedplace:20188947",
+      "resultType": "locality",
+      "localityType": "city",
+      "address": {
+        "label": "Chicago, IL, United States",
+        "countryCode": "USA",
+        "countryName": "United States",
+        "state": "Illinois",
+        "county": "Cook",
+        "city": "Chicago",
+        "postalCode": "60602"
+      },
+      "position": {
+        "lat": 41.8781,
+        "lng": -87.6298
+      }
+    },
+    {
+      "title": "Chicago Heights, IL, United States",
+      "id": "here:cm:namedplace:20189025",
+      "resultType": "locality",
+      "localityType": "city",
+      "address": {
+        "label": "Chicago Heights, IL, United States",
+        "countryCode": "USA",
+        "countryName": "United States",
+        "state": "Illinois",
+        "county": "Cook",
+        "city": "Chicago Heights"
+      },
+      "position": {
+        "lat": 41.5061,
+        "lng": -87.6359
+      }
+    },
+    {
+      "title": "West Chicago, IL, United States",
+      "id": "here:cm:namedplace:20189026",
+      "resultType": "locality",
+      "localityType": "city",
+      "address": {
+        "label": "West Chicago, IL, United States",
+        "countryCode": "USA",
+        "countryName": "United States",
+        "state": "Illinois",
+        "county": "DuPage",
+        "city": "West Chicago"
+      },
+      "position": {
+        "lat": 41.8847,
+        "lng": -88.2039
+      }
+    },
+    {
+      "title": "East Chicago, IN, United States",
+      "id": "here:cm:namedplace:20189027",
+      "resultType": "locality",
+      "localityType": "city",
+      "address": {
+        "label": "East Chicago, IN, United States",
+        "countryCode": "USA",
+        "countryName": "United States",
+        "state": "Indiana",
+        "county": "Lake",
+        "city": "East Chicago"
+      },
+      "position": {
+        "lat": 41.6500,
+        "lng": -87.4528
+      }
+    },
+    {
+      "title": "North Chicago, IL, United States",
+      "id": "here:cm:namedplace:20189028",
+      "resultType": "locality",
+      "localityType": "city",
+      "address": {
+        "label": "North Chicago, IL, United States",
+        "countryCode": "USA",
+        "countryName": "United States",
+        "state": "Illinois",
+        "county": "Lake",
+        "city": "North Chicago"
+      },
+      "position": {
+        "lat": 42.3256,
+        "lng": -87.8412
+      }
+    },
+    {
+      "title": "Chicago Category Suggestion",
+      "id": "here:cm:ontology:query",
+      "resultType": "categoryQuery",
+      "href": "https://autosuggest.search.hereapi.com/v1/discover?q=Chicago"
+    }
+  ]
+}

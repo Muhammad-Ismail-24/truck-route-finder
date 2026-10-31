@@ -383,6 +383,7 @@ class HeatmapMetric(StrEnum):
 ### 8.2 Dataclasses (`backend/domain/models.py`, all frozen)
 ```python
 LatLng(lat: float, lng: float)
+Place(label: str, lat: float, lng: float)
 
 RouteGeometry(
     route_id: str,                  # "route-1"
