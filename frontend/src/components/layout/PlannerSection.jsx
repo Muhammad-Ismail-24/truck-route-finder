@@ -29,7 +29,7 @@ import TripForm from '../trip-form/TripForm';
 import ResultsPanel from '../results/ResultsPanel';
 import ResultsSkeleton from '../results/ResultsSkeleton';
 import ErrorPanel from '../results/ErrorPanel';
-import { useTrip } from '../../state/TripProvider';
+import { useTripCore } from '../../state/TripProvider';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import { getRecommendedRoute } from '../../state/selectors';
 
@@ -46,39 +46,57 @@ const MapView = dynamic(() => import('../map/MapView'), {
 });
 
 export default function PlannerSection() {
-  const { state } = useTrip();
+  const { state } = useTripCore();
   const isReducedMotion = useReducedMotion();
   const [headerVisible, setHeaderVisible] = useState(false);
+  const [mapVisible, setMapVisible] = useState(false);
   const headerRef = useRef(null);
+  const mapContainerRef = useRef(null);
 
   useEffect(() => {
     if (isReducedMotion) return;
 
-    const el = headerRef.current;
-    if (!el) return;
+    const headerEl = headerRef.current;
+    let headerObs;
+    if (headerEl) {
+      headerObs = new IntersectionObserver(
+        (entries) => {
+          const [entry] = entries;
+          if (entry.isIntersecting) {
+            setHeaderVisible(true);
+            headerObs.disconnect();
+          }
+        },
+        { threshold: 0.2 }
+      );
+      headerObs.observe(headerEl);
+    }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        if (entry.isIntersecting) {
-          setHeaderVisible(true);
-          observer.disconnect();
-        }
-      },
-      {
-        threshold: 0.2,
-      }
-    );
-
-    observer.observe(el);
+    const mapEl = mapContainerRef.current;
+    let mapObs;
+    if (mapEl) {
+      mapObs = new IntersectionObserver(
+        (entries) => {
+          const [entry] = entries;
+          if (entry.isIntersecting) {
+            setMapVisible(true);
+            mapObs.disconnect();
+          }
+        },
+        { rootMargin: '300px' }
+      );
+      mapObs.observe(mapEl);
+    }
 
     return () => {
-      observer.disconnect();
+      if (headerObs) headerObs.disconnect();
+      if (mapObs) mapObs.disconnect();
     };
   }, [isReducedMotion]);
 
   const words = ['PLAN', 'YOUR', 'ROUTE'];
   const isShown = isReducedMotion || headerVisible;
+  const isMapShown = isReducedMotion || mapVisible;
   const recommendedRoute = state.result ? getRecommendedRoute(state) : null;
 
   return (
@@ -247,8 +265,20 @@ export default function PlannerSection() {
             delay={80}
             className="w-full flex-1 order-1 lg:order-2 h-[45vh] lg:h-auto min-h-[400px] flex flex-col"
           >
-            <div className="bg-surface-1 border border-border-subtle rounded-[24px] w-full h-full relative overflow-hidden shadow-2xl">
-              <MapView />
+            <div
+              ref={mapContainerRef}
+              className="bg-surface-1 border border-border-subtle rounded-[24px] w-full h-full relative overflow-hidden shadow-2xl"
+            >
+              {isMapShown ? (
+                <MapView />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center bg-surface-1 text-text-muted gap-3 p-6 select-none">
+                  <div className="w-8 h-8 rounded-full border-2 border-cobalt border-t-transparent animate-spin" />
+                  <span className="font-body text-xs uppercase tracking-wider text-text-faint">
+                    Loading Map Engine…
+                  </span>
+                </div>
+              )}
             </div>
           </Reveal>
         </div>

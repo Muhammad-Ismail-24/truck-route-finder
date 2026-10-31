@@ -10,7 +10,7 @@
  */
 
 import { useMemo } from 'react';
-import { useTrip } from '../../state/TripProvider';
+import { useTripCore } from '../../state/TripProvider';
 import { usePlanTrip } from '../../hooks/usePlanTrip';
 import LocationInput from './LocationInput';
 import DepartureInput, { validateDepartureTime } from './DepartureInput';
@@ -19,7 +19,7 @@ import IntervalSelect from './IntervalSelect';
 import Button from '../ui/Button';
 
 export default function TripForm() {
-  const { state, dispatch } = useTrip();
+  const { state, dispatch } = useTripCore();
   const { form } = state;
   const { submitPlan, loading, error: planError } = usePlanTrip();
 

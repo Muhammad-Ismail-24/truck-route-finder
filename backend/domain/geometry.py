@@ -10,6 +10,7 @@ No numpy, no shapely, no external I/O or frameworks.
 """
 
 import bisect
+import functools
 import math
 from collections.abc import Sequence
 
@@ -32,14 +33,22 @@ def haversine_mi(a: LatLng, b: LatLng) -> float:
     return EARTH_RADIUS_MI * c
 
 
+@functools.lru_cache(maxsize=32)
+def _cumulative_miles_cached(points_tuple: tuple[LatLng, ...]) -> tuple[float, ...]:
+    if not points_tuple:
+        return ()
+    cum = [0.0]
+    for i in range(1, len(points_tuple)):
+        cum.append(cum[-1] + haversine_mi(points_tuple[i - 1], points_tuple[i]))
+    return tuple(cum)
+
+
 def cumulative_miles(points: Sequence[LatLng]) -> list[float]:
     """Calculate cumulative mileage along a polyline, starting at 0.0."""
     if not points:
         return []
-    cum = [0.0]
-    for i in range(1, len(points)):
-        cum.append(cum[-1] + haversine_mi(points[i - 1], points[i]))
-    return cum
+    pts_tuple = points if isinstance(points, tuple) else tuple(points)
+    return list(_cumulative_miles_cached(pts_tuple))
 
 
 def point_at_mile(
@@ -98,15 +107,22 @@ def _rdp_indices(coords: list[tuple[float, float]], epsilon: float) -> list[int]
         max_dist = -1.0
         max_idx = start
 
-        for i in range(start + 1, end):
-            x0, y0 = coords[i]
-            if seg_len < 1e-9:
+        if seg_len < 1e-9:
+            for i in range(start + 1, end):
+                x0, y0 = coords[i]
                 dist = math.hypot(x0 - x1, y0 - y1)
-            else:
-                dist = abs(dy * x0 - dx * y0 + x2 * y1 - y2 * x1) / seg_len
-            if dist > max_dist:
-                max_dist = dist
-                max_idx = i
+                if dist > max_dist:
+                    max_dist = dist
+                    max_idx = i
+        else:
+            c = x2 * y1 - y2 * x1
+            inv_len = 1.0 / seg_len
+            for i in range(start + 1, end):
+                x0, y0 = coords[i]
+                dist = abs(dy * x0 - dx * y0 + c) * inv_len
+                if dist > max_dist:
+                    max_dist = dist
+                    max_idx = i
 
         if max_dist > epsilon:
             keep[max_idx] = True
@@ -116,15 +132,17 @@ def _rdp_indices(coords: list[tuple[float, float]], epsilon: float) -> list[int]
     return [i for i, k in enumerate(keep) if k]
 
 
-def simplify_polyline(points: Sequence[LatLng], max_points: int) -> list[LatLng]:
-    """Simplify polyline via Douglas-Peucker until point count <= max_points."""
-    if len(points) <= max_points or len(points) <= 2:
-        return list(points)
+@functools.lru_cache(maxsize=32)
+def _simplify_polyline_cached(
+    points_tuple: tuple[LatLng, ...], max_points: int
+) -> tuple[LatLng, ...]:
+    if len(points_tuple) <= max_points or len(points_tuple) <= 2:
+        return points_tuple
 
     target_max = max(2, max_points)
 
     # Project lat/lng to planar coordinates (in miles) around mean latitude
-    lat_ref_rad = math.radians(points[0].lat)
+    lat_ref_rad = math.radians(points_tuple[0].lat)
     cos_lat = math.cos(lat_ref_rad)
     rad_factor = math.pi / 180.0
 
@@ -133,12 +151,25 @@ def simplify_polyline(points: Sequence[LatLng], max_points: int) -> list[LatLng]
             p.lng * rad_factor * EARTH_RADIUS_MI * cos_lat,
             p.lat * rad_factor * EARTH_RADIUS_MI,
         )
-        for p in points
+        for p in points_tuple
     ]
 
-    epsilon = 0.001  # Start with 0.001 miles (~5 ft) tolerance
+    dx = coords[-1][0] - coords[0][0]
+    dy = coords[-1][1] - coords[0][1]
+    span = math.hypot(dx, dy)
+    initial_eps = max(0.001, span / (target_max * 4.0))
+
+    epsilon = initial_eps
     while True:
         indices = _rdp_indices(coords, epsilon)
         if len(indices) <= target_max:
-            return [points[i] for i in indices]
+            return tuple(points_tuple[i] for i in indices)
         epsilon *= 1.5
+
+
+def simplify_polyline(points: Sequence[LatLng], max_points: int) -> list[LatLng]:
+    """Simplify polyline via Douglas-Peucker until point count <= max_points."""
+    if len(points) <= max_points or len(points) <= 2:
+        return list(points)
+    pts_tuple = points if isinstance(points, tuple) else tuple(points)
+    return list(_simplify_polyline_cached(pts_tuple, max_points))

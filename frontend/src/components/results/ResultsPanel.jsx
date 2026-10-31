@@ -9,7 +9,7 @@
  * ARCHITECTURE.md Section 17.4, 25.5.
  */
 
-import { useTrip } from '../../state/TripProvider';
+import { useTripCore } from '../../state/TripProvider';
 import { getSelectedRoute, getRecommendedRoute } from '../../state/selectors';
 import RecommendationBanner from './RecommendationBanner';
 import NoticesPanel from './NoticesPanel';
@@ -17,7 +17,7 @@ import RouteCard from './RouteCard';
 import CheckpointTable from './CheckpointTable';
 
 export default function ResultsPanel() {
-  const { state, dispatch } = useTrip();
+  const { state, dispatch } = useTripCore();
   const { result, selectedRouteId, selectedCheckpointKey } = state;
 
   if (!result || !Array.isArray(result.routes) || result.routes.length === 0) {

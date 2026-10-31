@@ -10,7 +10,7 @@
  * ARCHITECTURE.md Section 17.5, 25.5, Decisions D-17, D-28, D-31.
  */
 
-import { useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect, useMemo, memo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Marker as MapLibreMarker, Popup as MapLibrePopup } from 'maplibre-gl';
 import { useTripCore, useHeatmap } from '../../state/TripProvider';
@@ -67,7 +67,7 @@ function HeatmapControlsContainer({ map, heatmapData }) {
   );
 }
 
-export default function MapView() {
+export default memo(function MapView() {
   const containerRef = useRef(null);
   const { state, dispatch } = useTripCore();
   const { result, selectedRouteId, selectedCheckpointKey } = state;
@@ -365,4 +365,4 @@ export default function MapView() {
       )}
     </div>
   );
-}
+});

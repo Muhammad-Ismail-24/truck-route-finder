@@ -52,7 +52,7 @@ export default function ScrollHero() {
           poster={POSTER_URL}
           muted
           playsInline
-          preload="auto"
+          preload="metadata"
           disablePictureInPicture
           aria-hidden="true"
           tabIndex={-1}

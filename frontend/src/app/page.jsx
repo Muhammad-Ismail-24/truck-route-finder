@@ -13,10 +13,14 @@
  * - All planner components, forms, and results share reactive dispatch/selector state.
  */
 
+import dynamic from 'next/dynamic';
 import { TripProvider } from '../state/TripProvider';
 import ScrollHero from '../components/hero/ScrollHero';
-import PlannerSection from '../components/layout/PlannerSection';
 import Footer from '../components/layout/Footer';
+
+const PlannerSection = dynamic(() => import('../components/layout/PlannerSection'), {
+  loading: () => <div id="planner" className="min-h-screen bg-ink" />,
+});
 
 export default function Page() {
   return (

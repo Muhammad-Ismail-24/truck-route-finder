@@ -336,6 +336,9 @@ export default function useHeroScroll({
     };
 
     const startLoop = () => {
+      if (video && video.preload !== 'auto') {
+        video.preload = 'auto';
+      }
       if (isRunningRef.current) return;
       isRunningRef.current = true;
       rafIdRef.current = requestAnimationFrame(loop);

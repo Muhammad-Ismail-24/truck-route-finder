@@ -23,6 +23,7 @@
 @media (max-width: 767px), (orientation: portrait) {
   .hero-track {
     --hero-u: min(calc(100vw / 430), 1.4px);
+    --edge-px: 36vh;
   }
 }
 
