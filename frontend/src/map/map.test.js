@@ -1,12 +1,17 @@
 import { describe, it, expect, vi } from 'vitest';
 import { calculateRoutesBounds } from './bounds';
-import { buildRoutesGeoJSON, EMPTY_GEOJSON } from './geojson';
+import { buildRoutesGeoJSON, buildCheckpointsGeoJSON, EMPTY_GEOJSON } from './geojson';
 import { getMapStyleUrl, DEFAULT_MAP_STYLE_URL } from './mapStyle';
 import {
   getRouteLineWidthExpression,
   getRouteLineOpacityExpression,
   getRouteCasingWidthExpression,
 } from './routeLayers';
+import {
+  getCheckpointCircleColorExpression,
+  getCheckpointCircleRadiusExpression,
+  getCheckpointCircleOpacityExpression,
+} from './checkpointLayers';
 import { animateRouteDrawIn } from './routeAnimation';
 
 describe('Map Bounds Calculation', () => {
@@ -163,5 +168,80 @@ describe('Route Draw-in Animation', () => {
     expect(mockSource.setData).toHaveBeenCalledTimes(1);
     expect(onComplete).toHaveBeenCalledTimes(1);
     expect(typeof controller.cancel).toBe('function');
+  });
+});
+
+describe('Checkpoints GeoJSON Builder', () => {
+  it('returns empty collection for empty or invalid routes', () => {
+    expect(buildCheckpointsGeoJSON([])).toEqual({ type: 'FeatureCollection', features: [] });
+    expect(buildCheckpointsGeoJSON(null)).toEqual({ type: 'FeatureCollection', features: [] });
+  });
+
+  it('builds Point features with props route_id, index, level, key, mile', () => {
+    const routes = [
+      {
+        id: 'route-1',
+        label: 'Route A',
+        checkpoints: [
+          {
+            index: 0,
+            mile: 0,
+            lat: 41.878,
+            lng: -87.629,
+            risk: { level: 'LOW' },
+          },
+          {
+            index: 1,
+            mile: 25.0,
+            lat: 41.5,
+            lng: -88.0,
+            risk: { level: 'SEVERE' },
+          },
+        ],
+      },
+    ];
+
+    const geojson = buildCheckpointsGeoJSON(routes);
+    expect(geojson.type).toBe('FeatureCollection');
+    expect(geojson.features).toHaveLength(2);
+
+    const cp0 = geojson.features[0];
+    expect(cp0.type).toBe('Feature');
+    expect(cp0.geometry.type).toBe('Point');
+    expect(cp0.geometry.coordinates).toEqual([-87.629, 41.878]);
+    expect(cp0.properties.route_id).toBe('route-1');
+    expect(cp0.properties.index).toBe(0);
+    expect(cp0.properties.key).toBe('route-1:0');
+    expect(cp0.properties.level).toBe('LOW');
+
+    const cp1 = geojson.features[1];
+    expect(cp1.properties.key).toBe('route-1:1');
+    expect(cp1.properties.level).toBe('SEVERE');
+  });
+});
+
+describe('Checkpoint Layer Expressions', () => {
+  it('returns match expression for circle color', () => {
+    const colorExpr = getCheckpointCircleColorExpression();
+    expect(colorExpr[0]).toBe('match');
+    expect(colorExpr[1]).toEqual(['get', 'level']);
+    expect(colorExpr).toContain('#2E9E5B'); // LOW
+    expect(colorExpr).toContain('#6B1D1D'); // NO_TRAVEL
+  });
+
+  it('returns radius expression with selected route always visible and others hidden below zoom 7', () => {
+    const radiusExpr = getCheckpointCircleRadiusExpression('route-1');
+    expect(radiusExpr[0]).toBe('case');
+    expect(radiusExpr[1]).toEqual(['==', ['get', 'route_id'], 'route-1']);
+    // Other routes branch has zoom < 7 check
+    expect(JSON.stringify(radiusExpr)).toContain('["<",["zoom"],7]');
+  });
+
+  it('returns opacity expression with other routes hidden below zoom 7', () => {
+    const opacityExpr = getCheckpointCircleOpacityExpression('route-1');
+    expect(opacityExpr[0]).toBe('case');
+    expect(opacityExpr[1]).toEqual(['==', ['get', 'route_id'], 'route-1']);
+    expect(opacityExpr[2]).toBe(1.0);
+    expect(JSON.stringify(opacityExpr)).toContain('["<",["zoom"],7]');
   });
 });

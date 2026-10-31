@@ -1,0 +1,110 @@
+/**
+ * @file map.css
+ * Map viewport CSS styles for selected checkpoint pulsing marker
+ * and custom MapLibre popup theming.
+ *
+ * References:
+ * ARCHITECTURE.md Section 17.5, 25.5.
+ */
+
+/* =========================================================================
+   Pulsing Marker (Selected Checkpoint)
+   ========================================================================= */
+
+.checkpoint-pulse-marker {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.checkpoint-pulse-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background-color: var(--pulse-color, #2f63ff);
+  box-shadow: 0 0 8px var(--pulse-color, #2f63ff);
+  z-index: 2;
+}
+
+.checkpoint-pulse-ring {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  border: 2px solid var(--pulse-color, #2f63ff);
+  animation: checkpoint-pulse-anim 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  z-index: 1;
+}
+
+.checkpoint-pulse-reduced {
+  animation: none !important;
+  transform: scale(1.35) !important;
+  opacity: 0.85 !important;
+}
+
+@keyframes checkpoint-pulse-anim {
+  0% {
+    transform: scale(0.6);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .checkpoint-pulse-ring {
+    animation: none;
+    transform: scale(1.35);
+    opacity: 0.85;
+  }
+}
+
+/* =========================================================================
+   MapLibre Popup Theming
+   ========================================================================= */
+
+.custom-checkpoint-popup .maplibregl-popup-content {
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.custom-checkpoint-popup.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  border-bottom-color: #161616 !important;
+}
+
+.custom-checkpoint-popup.maplibregl-popup-anchor-top-left .maplibregl-popup-tip {
+  border-bottom-color: #161616 !important;
+}
+
+.custom-checkpoint-popup.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+  border-bottom-color: #161616 !important;
+}
+
+.custom-checkpoint-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: #161616 !important;
+}
+
+.custom-checkpoint-popup.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip {
+  border-top-color: #161616 !important;
+}
+
+.custom-checkpoint-popup.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+  border-top-color: #161616 !important;
+}
+
+.custom-checkpoint-popup.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: #161616 !important;
+}
+
+.custom-checkpoint-popup.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: #161616 !important;
+}

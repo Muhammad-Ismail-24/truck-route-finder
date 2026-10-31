@@ -71,3 +71,53 @@ export function buildRoutesGeoJSON(routes = [], { coordinatePrefixes } = {}) {
     features,
   };
 }
+
+/**
+ * Builds a FeatureCollection of Point features representing checkpoints across all routes.
+ *
+ * @param {import('../lib/types').Route[]} [routes=[]]
+ * @returns {GeoJSON.FeatureCollection<GeoJSON.Point>}
+ */
+export function buildCheckpointsGeoJSON(routes = []) {
+  if (!Array.isArray(routes) || routes.length === 0) {
+    return {
+      type: 'FeatureCollection',
+      features: [],
+    };
+  }
+
+  const features = [];
+
+  for (const route of routes) {
+    if (!route || !Array.isArray(route.checkpoints)) continue;
+
+    for (const cp of route.checkpoints) {
+      if (typeof cp.lng !== 'number' || typeof cp.lat !== 'number') continue;
+
+      const key = `${route.id}:${cp.index}`;
+      features.push({
+        type: 'Feature',
+        id: key,
+        properties: {
+          key,
+          route_id: route.id,
+          index: cp.index,
+          level: cp.risk?.level || 'LOW',
+          label: route.label || route.id,
+          mile: cp.mile,
+          lat: cp.lat,
+          lng: cp.lng,
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: [cp.lng, cp.lat],
+        },
+      });
+    }
+  }
+
+  return {
+    type: 'FeatureCollection',
+    features,
+  };
+}
