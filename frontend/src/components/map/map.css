@@ -70,6 +70,25 @@
    MapLibre Popup Theming
    ========================================================================= */
 
+.custom-checkpoint-popup {
+  max-width: calc(100vw - 32px) !important;
+  z-index: 20;
+}
+
+/* =========================================================================
+   Accessible Map Navigation Controls
+   ========================================================================= */
+
+.maplibregl-ctrl-group button {
+  min-width: 44px !important;
+  min-height: 44px !important;
+}
+
+.maplibregl-ctrl-group button:focus-visible {
+  outline: 2px solid var(--color-cobalt, #2f63ff) !important;
+  outline-offset: 2px !important;
+}
+
 .custom-checkpoint-popup .maplibregl-popup-content {
   background: transparent !important;
   padding: 0 !important;

@@ -50,7 +50,7 @@ export default function ResultsPanel() {
           <h3 className="font-display text-sm uppercase tracking-wider text-white">
             COMPARE ROUTES
           </h3>
-          <span className="font-mono text-[11px] text-text-faint">
+          <span className="font-mono text-[11px] text-text-muted">
             {routes.length} options evaluated
           </span>
         </div>

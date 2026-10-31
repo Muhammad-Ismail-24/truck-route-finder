@@ -155,7 +155,7 @@ export default function LocationInput({
           aria-activedescendant={
             activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined
           }
-          className={`w-full bg-surface-2 border rounded-xl px-4 py-3 text-sm font-body text-white placeholder-text-faint transition-all duration-150 focus:outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt focus:ring-offset-2 focus:ring-offset-ink ${
+          className={`w-full bg-surface-2 border rounded-xl px-4 py-3 pr-12 text-sm font-body text-white placeholder-text-faint transition-all duration-150 focus:outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt focus:ring-offset-2 focus:ring-offset-ink min-h-[44px] ${
             error
               ? 'border-red-500/70 focus:border-red-500 focus:ring-red-500'
               : isSelected
@@ -165,18 +165,22 @@ export default function LocationInput({
         />
 
         {/* Right end adornment: Loading spinner or clear button */}
-        <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
-          {loading && <Spinner className="w-4 h-4 text-cobalt" />}
+        <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          {loading && (
+            <div className="w-10 h-10 flex items-center justify-center pointer-events-none">
+              <Spinner className="w-4 h-4 text-cobalt" />
+            </div>
+          )}
           {!loading && currentDisplayText && (
             <button
               type="button"
               onClick={handleClear}
-              tabIndex={-1}
+              tabIndex={0}
               aria-label={`Clear ${label}`}
-              className="pointer-events-auto text-text-faint hover:text-white transition-colors p-1"
+              className="text-text-muted hover:text-white transition-colors w-11 h-11 flex items-center justify-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt focus-visible:ring-offset-1 focus-visible:ring-offset-surface-2"
             >
               <svg
-                className="w-3.5 h-3.5"
+                className="w-4 h-4"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -212,7 +216,7 @@ export default function LocationInput({
                 aria-selected={isHighlighted}
                 onMouseEnter={() => setActiveIndex(index)}
                 onClick={() => handleSelectSuggestion(place)}
-                className={`px-4 py-2.5 text-xs sm:text-sm font-body cursor-pointer flex items-center justify-between transition-colors duration-100 ${
+                className={`px-4 py-3 min-h-[44px] text-xs sm:text-sm font-body cursor-pointer flex items-center justify-between transition-colors duration-100 ${
                   isHighlighted
                     ? 'bg-cobalt text-white'
                     : 'text-text-muted hover:bg-surface-3 hover:text-white'

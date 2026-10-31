@@ -30,17 +30,20 @@ export default function IntervalSelect({ value = 25, onChange }) {
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
-        <label className="font-body text-xs uppercase tracking-wider text-text-muted font-medium">
+        <label
+          id="interval-select-label"
+          className="font-body text-xs uppercase tracking-wider text-text-muted font-medium"
+        >
           Checkpoint Interval
         </label>
-        <span className="font-mono text-[11px] text-text-faint tabular">
+        <span className="font-mono text-[11px] text-text-muted tabular">
           Default: 25 miles
         </span>
       </div>
 
       <div
         role="radiogroup"
-        aria-label="Checkpoint interval"
+        aria-labelledby="interval-select-label"
         className="relative bg-surface-2 border border-border-subtle rounded-xl p-1 flex items-center select-none"
       >
         {/* Sliding Highlight Pill */}
@@ -64,7 +67,7 @@ export default function IntervalSelect({ value = 25, onChange }) {
               role="radio"
               aria-checked={isSelected}
               onClick={() => onChange(opt.value)}
-              className={`relative z-10 w-1/3 py-2 text-center rounded-lg font-mono text-xs font-semibold tabular transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt ${
+              className={`relative z-10 w-1/3 min-h-[44px] py-2 flex items-center justify-center rounded-lg font-mono text-xs font-semibold tabular transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt ${
                 isSelected
                   ? 'text-white'
                   : 'text-text-muted hover:text-white'
@@ -75,7 +78,7 @@ export default function IntervalSelect({ value = 25, onChange }) {
           );
         })}
       </div>
-      <p className="text-[11px] text-text-faint font-body mt-0.5">
+      <p className="text-[11px] text-text-muted font-body mt-0.5">
         Interval dictates frequency of weather forecasts along the route corridor.
       </p>
     </div>

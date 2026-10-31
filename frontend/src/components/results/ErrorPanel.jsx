@@ -99,7 +99,7 @@ export default function ErrorPanel({ error, onRetry }) {
           </p>
 
           {error?.message && error.message !== mapped.message && (
-            <p className="font-mono text-[11px] text-text-faint mt-1">
+            <p className="font-mono text-[11px] text-text-muted mt-1">
               Details: {error.message}
             </p>
           )}

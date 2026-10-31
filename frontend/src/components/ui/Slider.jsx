@@ -114,7 +114,7 @@ export default function Slider({
   const percentage = max > min ? ((clampVal(value) - min) / (max - min)) * 100 : 0;
 
   return (
-    <div className={`relative flex items-center select-none py-2 ${className}`}>
+    <div className={`relative flex items-center select-none py-3 min-h-[44px] ${className}`}>
       {/* Clickable / Draggable Track Area */}
       <div
         ref={trackRef}
@@ -129,7 +129,7 @@ export default function Slider({
           style={{ width: `${percentage}%` }}
         />
 
-        {/* Thumb */}
+        {/* Thumb with accessible 44px hit target */}
         <div
           role="slider"
           tabIndex={disabled ? -1 : 0}
@@ -139,7 +139,7 @@ export default function Slider({
           aria-valuenow={value}
           aria-valuetext={ariaValueText || `+${value} hours`}
           onKeyDown={handleKeyDown}
-          className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-cobalt shadow-md hover:scale-110 focus:outline-none focus:ring-2 focus:ring-cobalt focus:ring-offset-2 focus:ring-offset-ink transition-transform cursor-grab active:cursor-grabbing"
+          className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-cobalt shadow-md hover:scale-110 focus:outline-none focus:ring-2 focus:ring-cobalt focus:ring-offset-2 focus:ring-offset-ink transition-transform cursor-grab active:cursor-grabbing before:content-[''] before:absolute before:-top-3.5 before:-bottom-3.5 before:-left-3.5 before:-right-3.5 before:rounded-full"
           style={{ left: `${percentage}%` }}
         />
       </div>

@@ -36,7 +36,7 @@ export default function Button({
   const isDisabled = disabled || loading;
 
   const baseStyles =
-    'relative overflow-hidden inline-flex items-center justify-center font-body font-semibold rounded-full select-none transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt focus-visible:ring-offset-2 focus-visible:ring-offset-ink active:scale-[0.98] disabled:active:scale-100 disabled:cursor-not-allowed';
+    'relative overflow-hidden inline-flex items-center justify-center font-body font-semibold rounded-full select-none transition-all duration-150 min-h-[44px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt focus-visible:ring-offset-2 focus-visible:ring-offset-ink active:scale-[0.98] disabled:active:scale-100 disabled:cursor-not-allowed';
 
   const sizeStyles = {
     sm: 'text-xs px-4 py-2 gap-1.5',

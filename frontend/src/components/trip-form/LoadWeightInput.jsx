@@ -98,7 +98,7 @@ export default function LoadWeightInput({
         >
           Cargo Load Weight
         </label>
-        <span className="font-mono text-[11px] text-text-faint tabular">
+        <span className="font-mono text-[11px] text-text-muted tabular">
           Max: 80,000 lb
         </span>
       </div>
@@ -113,7 +113,7 @@ export default function LoadWeightInput({
           onFocus={handleFocus}
           onBlur={handleBlur}
           placeholder="e.g. 40,000"
-          className={`w-full bg-surface-2 border rounded-xl px-4 py-3 pr-12 text-sm font-mono text-white transition-all duration-150 focus:outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt focus:ring-offset-2 focus:ring-offset-ink tabular ${
+          className={`w-full bg-surface-2 border rounded-xl px-4 py-3 pr-12 min-h-[44px] text-sm font-mono text-white transition-all duration-150 focus:outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt focus:ring-offset-2 focus:ring-offset-ink tabular ${
             activeError
               ? 'border-red-500/70 focus:border-red-500 focus:ring-red-500'
               : 'border-border-subtle'
@@ -141,7 +141,7 @@ export default function LoadWeightInput({
           <span>{activeError}</span>
         </p>
       ) : (
-        <p className="text-[11px] text-text-faint font-body mt-0.5">
+        <p className="text-[11px] text-text-muted font-body mt-0.5">
           {validation.tierMessage}
         </p>
       )}

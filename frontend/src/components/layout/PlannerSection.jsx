@@ -31,6 +31,7 @@ import ResultsSkeleton from '../results/ResultsSkeleton';
 import ErrorPanel from '../results/ErrorPanel';
 import { useTrip } from '../../state/TripProvider';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { getRecommendedRoute } from '../../state/selectors';
 
 const MapView = dynamic(() => import('../map/MapView'), {
   ssr: false,
@@ -78,6 +79,7 @@ export default function PlannerSection() {
 
   const words = ['PLAN', 'YOUR', 'ROUTE'];
   const isShown = isReducedMotion || headerVisible;
+  const recommendedRoute = state.result ? getRecommendedRoute(state) : null;
 
   return (
     <section
@@ -85,6 +87,20 @@ export default function PlannerSection() {
       className="min-h-screen bg-ink text-white px-4 sm:px-6 lg:px-12 py-12 lg:py-16 scroll-mt-0 relative"
       style={{ scrollMarginTop: 0 }}
     >
+      {/* Accessible Live Region for Screen Reader Announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {state.status === 'loading' && 'Planning route and calculating weather risk across corridor…'}
+        {state.status === 'success' && state.result &&
+          `Route plan ready. Evaluated ${state.result.routes?.length || 3} options. Recommended route is ${recommendedRoute?.label || 'Route A'}.`}
+        {state.status === 'error' && state.error &&
+          `Route planning failed: ${state.error.message || 'Error occurred.'}`}
+      </div>
+
       <div className="max-w-[1600px] mx-auto flex flex-col h-full">
         {/* Animated Heading Section */}
         <div ref={headerRef} className="mb-8 lg:mb-10">
@@ -93,7 +109,7 @@ export default function PlannerSection() {
           </p>
 
           <div className="inline-block relative pb-3">
-            <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl uppercase tracking-wide leading-none text-white flex gap-x-3 sm:gap-x-4 flex-wrap">
+            <h2 className="font-display text-4xl sm:text-6xl lg:text-7xl uppercase tracking-wide leading-none text-white flex gap-x-3 sm:gap-x-4 flex-wrap">
               {words.map((word, i) => (
                 <span
                   key={word}
@@ -117,7 +133,7 @@ export default function PlannerSection() {
                   </span>
                 </span>
               ))}
-            </h1>
+            </h2>
 
             {/* Cobalt Accent Rule */}
             <div
@@ -146,9 +162,9 @@ export default function PlannerSection() {
               {/* Sidebar Header */}
               <div className="flex items-center justify-between border-b border-border-subtle pb-4 mb-6">
                 <div>
-                  <h2 className="font-display text-lg uppercase tracking-wider text-white">
+                  <h3 className="font-display text-lg uppercase tracking-wider text-white">
                     TRIP PARAMETERS
-                  </h2>
+                  </h3>
                   <p className="font-body text-xs text-text-muted mt-0.5">
                     Configure route & vehicle load
                   </p>

@@ -354,8 +354,12 @@ export default function MapView() {
   }, []);
 
   return (
-    <div className="w-full h-full relative rounded-[24px] overflow-hidden">
-      <div ref={containerRef} className="w-full h-full" />
+    <div
+      role="region"
+      aria-label="Route and forecast map"
+      className="w-full h-full relative rounded-[24px] overflow-hidden"
+    >
+      <div ref={containerRef} className="w-full h-full" tabIndex={0} aria-label="Interactive map canvas" />
       {result?.heatmap && (
         <HeatmapControlsContainer map={map} heatmapData={result.heatmap} />
       )}

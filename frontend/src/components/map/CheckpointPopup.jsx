@@ -18,6 +18,7 @@
  * ARCHITECTURE.md Section 17.5, 17.7, 25.5.
  */
 
+import { useEffect } from 'react';
 import { getRiskLevel } from '../../lib/risk/riskLevels';
 import { formatUtcInBrowserTimezone } from '../../lib/format/time';
 import { formatMilesValue } from '../../lib/format/distance';
@@ -30,6 +31,16 @@ import { formatWind, formatRain, formatSnow } from '../../lib/format/weather';
  * @param {() => void} props.onClose
  */
 export default function CheckpointPopup({ checkpoint, route, onClose }) {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   if (!checkpoint) return null;
 
   const { weather, risk } = checkpoint;
@@ -45,7 +56,7 @@ export default function CheckpointPopup({ checkpoint, route, onClose }) {
     <div
       role="dialog"
       aria-label={`Checkpoint mile ${checkpoint.mile} details`}
-      className="bg-surface-1 border border-border-subtle rounded-[20px] shadow-2xl p-4 w-[310px] text-white font-body select-none transition-all"
+      className="bg-surface-1 border border-border-subtle rounded-[20px] shadow-2xl p-4 w-[310px] max-w-[calc(100vw-32px)] text-white font-body select-none transition-all"
     >
       {/* Top Header: Route/Mile Eyebrow + Close Button */}
       <div className="flex items-center justify-between pb-3 border-b border-border-subtle/60">
@@ -64,7 +75,7 @@ export default function CheckpointPopup({ checkpoint, route, onClose }) {
           type="button"
           onClick={onClose}
           aria-label="Close checkpoint details"
-          className="p-1 rounded-full text-text-muted hover:text-white hover:bg-surface-2 focus:outline-none focus:ring-2 focus:ring-cobalt transition-colors"
+          className="w-11 h-11 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-full text-text-muted hover:text-white hover:bg-surface-2 focus:outline-none focus:ring-2 focus:ring-cobalt transition-colors"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="18" y1="6" x2="6" y2="18" />

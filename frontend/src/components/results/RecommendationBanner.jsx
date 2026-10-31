@@ -70,9 +70,9 @@ export default function RecommendationBanner({ recommendation, recommendedRoute 
 
       {/* Recommended Route Title with Sweeping Cobalt Underline */}
       <div className="relative inline-block mb-3">
-        <h2 className="font-display text-2xl sm:text-3xl text-white tracking-wide uppercase">
+        <h3 className="font-display text-2xl sm:text-3xl text-white tracking-wide uppercase">
           {`RECOMMENDED: ${routeName}`}
-        </h2>
+        </h3>
 
         {/* Cobalt sweep underline */}
         <span

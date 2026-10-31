@@ -46,7 +46,7 @@ export default function CheckpointTable({
             ({route.checkpoints.length} sampled points)
           </span>
         </div>
-        <span className="text-[10px] font-mono uppercase tracking-wider text-text-faint">
+        <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted">
           Click row to inspect
         </span>
       </div>
@@ -54,7 +54,7 @@ export default function CheckpointTable({
       {/* Scrollable Table Viewport with Sticky Header */}
       <div className="max-h-[340px] overflow-y-auto overflow-x-auto">
         <table className="w-full text-left text-xs border-collapse">
-          <thead className="sticky top-0 z-10 bg-surface-2 border-b border-border-subtle text-[11px] font-mono uppercase tracking-wider text-text-faint">
+          <thead className="sticky top-0 z-10 bg-surface-2 border-b border-border-subtle text-[11px] font-mono uppercase tracking-wider text-text-muted">
             <tr>
               <th className="py-2.5 px-3 whitespace-nowrap">Mile</th>
               <th className="py-2.5 px-3 whitespace-nowrap">ETA</th>
@@ -82,39 +82,39 @@ export default function CheckpointTable({
                       onSelectCheckpoint(key);
                     }
                   }}
-                  className={`cursor-pointer transition-colors select-none focus:outline-none focus:bg-surface-3 ${
+                  className={`cursor-pointer transition-colors select-none focus:outline-none focus:bg-surface-3 focus-visible:ring-2 focus-visible:ring-cobalt focus-visible:ring-inset ${
                     isSelected
                       ? 'bg-cobalt/20 hover:bg-cobalt/25 text-white font-medium border-l-2 border-l-cobalt'
                       : 'hover:bg-surface-2/60 text-text-muted'
                   }`}
                 >
                   {/* Mile */}
-                  <td className="py-2 px-3 text-white font-medium whitespace-nowrap">
+                  <td className="py-3 px-3 text-white font-medium whitespace-nowrap">
                     {formatMilesValue(cp.mile, 1)}
                   </td>
 
                   {/* ETA */}
-                  <td className="py-2 px-3 whitespace-nowrap font-body text-[11px] text-text-primary">
+                  <td className="py-3 px-3 whitespace-nowrap font-body text-[11px] text-text-primary">
                     {formatUtcInBrowserTimezone(cp.eta_utc, { includeDate: false })}
                   </td>
 
                   {/* Wind */}
-                  <td className="py-2 px-3 whitespace-nowrap text-text-primary">
+                  <td className="py-3 px-3 whitespace-nowrap text-text-primary">
                     {formatWind(cp.weather?.wind_mph, cp.weather?.wind_gust_mph)}
                   </td>
 
                   {/* Rain */}
-                  <td className="py-2 px-3 whitespace-nowrap">
+                  <td className="py-3 px-3 whitespace-nowrap">
                     {formatRain(cp.weather?.rain_in_hr)}
                   </td>
 
                   {/* Snow */}
-                  <td className="py-2 px-3 whitespace-nowrap">
+                  <td className="py-3 px-3 whitespace-nowrap">
                     {formatSnow(cp.weather?.snow_in_hr)}
                   </td>
 
                   {/* Risk Badge */}
-                  <td className="py-2 px-3 text-right whitespace-nowrap">
+                  <td className="py-3 px-3 text-right whitespace-nowrap">
                     <RiskBadge level={cp.risk?.level} size="sm" />
                   </td>
                 </tr>

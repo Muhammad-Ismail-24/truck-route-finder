@@ -124,21 +124,21 @@ export default function HeatmapControls({
       className="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto sm:w-[380px] z-10 bg-[#161616] border border-border-subtle rounded-2xl p-4 shadow-2xl space-y-3 text-white font-body select-none"
     >
       {/* Top Bar: Visibility Toggle & Metric Segmented Control */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         {/* Visibility Toggle Button */}
         <button
           type="button"
           onClick={handleVisibilityToggle}
           aria-pressed={visible}
           aria-label={visible ? 'Hide weather heatmap' : 'Show weather heatmap'}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono tabular font-medium transition-colors border ${
+          className={`flex items-center gap-2 px-3.5 py-2 min-h-[44px] rounded-full text-xs font-mono tabular font-medium transition-colors border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt focus-visible:ring-offset-1 focus-visible:ring-offset-surface-1 ${
             visible
               ? 'bg-cobalt/20 border-cobalt/40 text-cobalt hover:bg-cobalt/30'
               : 'bg-surface-2 border-border-subtle text-text-muted hover:text-white'
           }`}
         >
           <span
-            className={`w-2 h-2 rounded-full ${visible ? 'bg-cobalt' : 'bg-text-faint'}`}
+            className={`w-2.5 h-2.5 rounded-full ${visible ? 'bg-cobalt' : 'bg-text-faint'}`}
             aria-hidden="true"
           />
           <span>{visible ? 'Heatmap ON' : 'Heatmap OFF'}</span>
@@ -148,7 +148,7 @@ export default function HeatmapControls({
         <div
           role="radiogroup"
           aria-label="Heatmap weather metric"
-          className="flex items-center bg-surface-2 p-0.5 rounded-full border border-border-subtle"
+          className="flex items-center bg-surface-2 p-1 rounded-full border border-border-subtle"
         >
           {METRICS.map((m) => {
             const isSelected = metric === m.key;
@@ -159,7 +159,7 @@ export default function HeatmapControls({
                 role="radio"
                 aria-checked={isSelected}
                 onClick={() => handleMetricChange(m.key)}
-                className={`px-2.5 py-0.5 rounded-full text-[11px] font-mono tabular font-medium transition-all ${
+                className={`min-h-[44px] min-w-[44px] px-3 flex items-center justify-center rounded-full text-xs font-mono tabular font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt focus-visible:ring-offset-1 focus-visible:ring-offset-surface-2 ${
                   isSelected
                     ? 'bg-cobalt text-white shadow-sm'
                     : 'text-text-muted hover:text-white'
@@ -181,7 +181,7 @@ export default function HeatmapControls({
               <span className="font-mono tabular font-bold text-sm text-white">
                 {`+${hour}h`}
               </span>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-text-faint">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-text-muted">
                 Forecast
               </span>
             </div>
@@ -205,7 +205,7 @@ export default function HeatmapControls({
           />
 
           {/* Hour Tick Markers */}
-          <div className="flex justify-between items-center text-[10px] font-mono tabular text-text-faint px-0.5">
+          <div className="flex justify-between items-center text-[10px] font-mono tabular text-text-muted px-0.5">
             <span>0h (Dep)</span>
             <span>+12h</span>
             <span>+24h</span>

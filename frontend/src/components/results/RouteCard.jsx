@@ -65,9 +65,9 @@ export default function RouteCard({ route, isSelected, onClick, index = 0 }) {
             style={{ backgroundColor: routeColor }}
             aria-hidden="true"
           />
-          <h3 className="font-display text-base tracking-wide uppercase text-white">
+          <h4 className="font-display text-base tracking-wide uppercase text-white">
             {route.label || route.id}
-          </h3>
+          </h4>
         </div>
 
         {isRecommended && (
