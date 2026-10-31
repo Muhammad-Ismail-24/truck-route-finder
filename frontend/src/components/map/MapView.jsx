@@ -35,6 +35,7 @@ import {
 } from '../../map/heatmapLayer';
 import { calculateRoutesBounds, fitMapToBounds } from '../../map/bounds';
 import { animateRouteDrawIn } from '../../map/routeAnimation';
+import { easeOutCubic } from '../../lib/motion';
 import {
   buildRoutesGeoJSON,
   buildCheckpointsGeoJSON,
@@ -292,10 +293,11 @@ export default function MapView() {
 
     pulseMarkerRef.current = marker;
 
-    // Smoothly pan camera to center on selected checkpoint (instant under reduced motion)
+    // Smoothly pan camera to center on selected checkpoint (ease-out, instant under reduced motion)
     map.easeTo({
       center: [selectedCheckpoint.lng, selectedCheckpoint.lat],
       duration: isReducedMotion ? 0 : 600,
+      easing: isReducedMotion ? undefined : easeOutCubic,
     });
 
     // 2. Create MapLibre Popup at selected checkpoint

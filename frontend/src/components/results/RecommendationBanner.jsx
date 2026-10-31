@@ -81,7 +81,7 @@ export default function RecommendationBanner({ recommendation, recommendedRoute 
             width: '100%',
             animation: isReducedMotion
               ? 'none'
-              : 'underline-sweep 700ms cubic-bezier(0.22, 1, 0.36, 1) 200ms forwards',
+              : 'underline-sweep 600ms cubic-bezier(0.22, 1, 0.36, 1) 200ms forwards',
             transform: isReducedMotion ? 'scaleX(1)' : 'scaleX(0)',
           }}
           aria-hidden="true"

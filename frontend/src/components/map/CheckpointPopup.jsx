@@ -45,7 +45,7 @@ export default function CheckpointPopup({ checkpoint, route, onClose }) {
     <div
       role="dialog"
       aria-label={`Checkpoint mile ${checkpoint.mile} details`}
-      className="bg-surface-1/95 backdrop-blur-md border border-border-subtle rounded-[20px] shadow-2xl p-4 w-[310px] text-white font-body select-none transition-all"
+      className="bg-surface-1 border border-border-subtle rounded-[20px] shadow-2xl p-4 w-[310px] text-white font-body select-none transition-all"
     >
       {/* Top Header: Route/Mile Eyebrow + Close Button */}
       <div className="flex items-center justify-between pb-3 border-b border-border-subtle/60">

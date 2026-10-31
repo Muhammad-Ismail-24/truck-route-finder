@@ -349,8 +349,7 @@
   padding: calc(10 * var(--hero-u)) calc(24 * var(--hero-u));
   border: 1px solid var(--border-strong, rgba(255, 255, 255, 0.28));
   border-radius: 9999px;
-  background: rgba(17, 17, 17, 0.7);
-  backdrop-filter: blur(8px);
+  background: var(--surface-1, #161616);
   pointer-events: auto;
   transition: opacity var(--motion-base, 280ms) var(--motion-ease),
     transform var(--motion-base, 280ms) var(--motion-ease),
