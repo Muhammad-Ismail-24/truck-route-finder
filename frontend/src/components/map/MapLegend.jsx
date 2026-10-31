@@ -54,7 +54,7 @@ export default function MapLegend({ metric = 'RISK', className = '' }) {
         className="w-full h-2 rounded-full border border-border-subtle"
         style={{
           background:
-            'linear-gradient(to right, rgba(0,0,0,0) 0%, #F2C94C 25%, #F2994A 50%, #EB5757 75%, #6B1D1D 100%)',
+            'linear-gradient(to right, rgba(0,0,0,0) 0%, var(--color-risk-moderate) 25%, var(--color-risk-high) 50%, var(--color-risk-severe) 75%, var(--color-risk-no-travel) 100%)',
         }}
         aria-hidden="true"
       />

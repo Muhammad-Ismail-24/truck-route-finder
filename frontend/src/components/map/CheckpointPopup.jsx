@@ -157,8 +157,8 @@ export default function CheckpointPopup({ checkpoint, route, onClose }) {
 
       {/* Plain-Language Load Rule Note (when triggered) */}
       {loadRule === 'WIND_45_54_OVER_30K' && (
-        <div className="mt-3 p-2.5 rounded-xl bg-[#6B1D1D]/30 border border-[#EB5757]/40 text-xs text-text-primary leading-relaxed">
-          <div className="font-semibold text-[#EB5757] flex items-center gap-1.5 mb-1 text-[11px] uppercase tracking-wide">
+        <div className="mt-3 p-2.5 rounded-xl bg-risk-no-travel/30 border border-risk-severe/40 text-xs text-text-primary leading-relaxed">
+          <div className="font-semibold text-risk-severe flex items-center gap-1.5 mb-1 text-[11px] uppercase tracking-wide">
             <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
               <line x1="12" y1="9" x2="12" y2="13" />
@@ -174,8 +174,8 @@ export default function CheckpointPopup({ checkpoint, route, onClose }) {
       )}
 
       {loadRule === 'WIND_35_44_OVER_40K' && (
-        <div className="mt-3 p-2.5 rounded-xl bg-[#EB5757]/15 border border-[#F2994A]/40 text-xs text-text-primary leading-relaxed">
-          <div className="font-semibold text-[#F2994A] flex items-center gap-1.5 mb-1 text-[11px] uppercase tracking-wide">
+        <div className="mt-3 p-2.5 rounded-xl bg-risk-severe/15 border border-risk-high/40 text-xs text-text-primary leading-relaxed">
+          <div className="font-semibold text-risk-high flex items-center gap-1.5 mb-1 text-[11px] uppercase tracking-wide">
             <svg className="w-3.5 h-3.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
               <line x1="12" y1="9" x2="12" y2="13" />

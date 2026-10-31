@@ -13,7 +13,7 @@
  * ARCHITECTURE.md Section 17.5, 25.5.
  */
 
-import { RISK_LEVELS } from '../lib/risk/riskLevels';
+import { MAP_THEME_COLORS, RISK_LEVELS } from '../lib/risk/riskLevels';
 import { EMPTY_GEOJSON } from './geojson';
 
 export const CHECKPOINTS_SOURCE_ID = 'checkpoints-src';
@@ -118,8 +118,8 @@ export function getCheckpointStrokeColorExpression() {
   return [
     'case',
     ['==', ['get', 'level'], 'NO_TRAVEL'],
-    'rgba(255, 255, 255, 0.65)',
-    '#111111',
+    MAP_THEME_COLORS.textMuted,
+    MAP_THEME_COLORS.ink,
   ];
 }
 
@@ -201,7 +201,7 @@ export function addCheckpointLayers(
           ],
           'circle-color': 'transparent',
           'circle-stroke-width': 2.5,
-          'circle-stroke-color': '#ffffff',
+          'circle-stroke-color': MAP_THEME_COLORS.white,
           'circle-stroke-opacity': 0.95,
         },
       },

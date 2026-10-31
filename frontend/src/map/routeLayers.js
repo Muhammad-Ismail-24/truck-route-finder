@@ -14,6 +14,7 @@
  */
 
 import { EMPTY_GEOJSON } from './geojson';
+import { MAP_THEME_COLORS } from '../lib/risk/riskLevels';
 
 export const ROUTES_SOURCE_ID = 'routes-src';
 export const ROUTES_CASING_LAYER_ID = 'routes-casing';
@@ -93,8 +94,8 @@ export function addRouteLayers(map, selectedRouteId = null, beforeLayerId) {
           'line-color': [
             'case',
             ['get', 'is_recommended'],
-            '#ffffff', // Distinct white outline for recommended route
-            '#111111', // Contrast dark casing for other routes
+            MAP_THEME_COLORS.white, // Distinct white outline for recommended route
+            MAP_THEME_COLORS.ink, // Contrast dark casing for other routes
           ],
           'line-opacity': getRouteLineOpacityExpression(selectedRouteId),
         },

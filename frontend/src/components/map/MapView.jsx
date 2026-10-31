@@ -279,7 +279,7 @@ export default memo(function MapView() {
     dotEl.className = 'checkpoint-pulse-dot';
 
     const riskMeta = getRiskLevel(selectedCheckpoint.risk?.level);
-    markerEl.style.setProperty('--pulse-color', riskMeta.fill || '#2f63ff');
+    markerEl.style.setProperty('--pulse-color', riskMeta.fill || 'var(--color-cobalt)');
 
     markerEl.appendChild(ringEl);
     markerEl.appendChild(dotEl);

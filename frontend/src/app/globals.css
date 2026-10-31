@@ -6,6 +6,13 @@
   --color-cobalt: #2f63ff;
   --color-giant: #e9e9e9;
 
+  /* Risk level theme tokens (ARCHITECTURE.md Section 17.7 & Section 14) */
+  --color-risk-low: #2E9E5B;
+  --color-risk-moderate: #F2C94C;
+  --color-risk-high: #F2994A;
+  --color-risk-severe: #EB5757;
+  --color-risk-no-travel: #6B1D1D;
+
   --surface-1: #161616;
   --surface-2: #1d1d1d;
   --surface-3: #262626;
@@ -29,6 +36,12 @@
   --color-ink: var(--color-ink);
   --color-cobalt: var(--color-cobalt);
   --color-giant: var(--color-giant);
+
+  --color-risk-low: var(--color-risk-low);
+  --color-risk-moderate: var(--color-risk-moderate);
+  --color-risk-high: var(--color-risk-high);
+  --color-risk-severe: var(--color-risk-severe);
+  --color-risk-no-travel: var(--color-risk-no-travel);
 
   --color-surface-1: var(--surface-1);
   --color-surface-2: var(--surface-2);

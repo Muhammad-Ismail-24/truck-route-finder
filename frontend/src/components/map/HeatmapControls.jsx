@@ -121,7 +121,7 @@ export default function HeatmapControls({
     <div
       role="region"
       aria-label="Heatmap forecast controls"
-      className="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto sm:w-[380px] z-10 bg-[#161616] border border-border-subtle rounded-2xl p-4 shadow-2xl space-y-3 text-white font-body select-none"
+      className="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto sm:w-[380px] z-10 bg-surface-1 border border-border-subtle rounded-2xl p-4 shadow-2xl space-y-3 text-white font-body select-none"
     >
       {/* Top Bar: Visibility Toggle & Metric Segmented Control */}
       <div className="flex flex-wrap items-center justify-between gap-2">

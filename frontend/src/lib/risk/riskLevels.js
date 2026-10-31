@@ -64,6 +64,15 @@ export const ROUTE_COLORS = {
 };
 
 /**
+ * Standard map colors for WebGL vector layers (matching globals.css tokens).
+ */
+export const MAP_THEME_COLORS = {
+  white: '#ffffff',
+  ink: '#111111',
+  textMuted: 'rgba(255, 255, 255, 0.65)',
+};
+
+/**
  * NO_TRAVEL thresholds used for heatmap intensity normalization (Section 14).
  */
 export const HEATMAP_THRESHOLDS = {

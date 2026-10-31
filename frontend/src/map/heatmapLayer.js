@@ -18,6 +18,7 @@
 
 import { EMPTY_GEOJSON } from './geojson';
 import { ROUTES_CASING_LAYER_ID } from './routeLayers';
+import { RISK_LEVELS } from '../lib/risk/riskLevels';
 
 export const HEATMAP_SOURCE_ID = 'heatmap-src';
 export const HEATMAP_LAYER_ID = 'heatmap-layer';
@@ -68,10 +69,10 @@ export function addHeatmapLayer(
             ['linear'],
             ['heatmap-density'],
             0, 'rgba(0, 0, 0, 0)',
-            0.2, '#F2C94C',
-            0.5, '#F2994A',
-            0.8, '#EB5757',
-            1.0, '#6B1D1D',
+            0.2, RISK_LEVELS.MODERATE.fill,
+            0.5, RISK_LEVELS.HIGH.fill,
+            0.8, RISK_LEVELS.SEVERE.fill,
+            1.0, RISK_LEVELS.NO_TRAVEL.fill,
           ],
 
           // Interpolated heatmap radius by zoom level

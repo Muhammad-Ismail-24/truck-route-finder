@@ -64,10 +64,10 @@ export default function ErrorPanel({ error, onRetry }) {
   return (
     <div
       role="alert"
-      className="rounded-2xl p-5 mt-6 border border-[#EB5757]/40 bg-[#6B1D1D]/20 space-y-4 shadow-xl"
+      className="rounded-2xl p-5 mt-6 border border-risk-severe/40 bg-risk-no-travel/20 space-y-4 shadow-xl"
     >
       <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-xl bg-[#EB5757]/20 border border-[#EB5757]/40 flex items-center justify-center shrink-0 text-[#EB5757]">
+        <div className="w-10 h-10 rounded-xl bg-risk-severe/20 border border-risk-severe/40 flex items-center justify-center shrink-0 text-risk-severe">
           <svg
             className="w-5 h-5"
             viewBox="0 0 24 24"
@@ -89,7 +89,7 @@ export default function ErrorPanel({ error, onRetry }) {
             <h3 className="font-display text-lg text-white uppercase tracking-wide">
               {mapped.title}
             </h3>
-            <span className="font-mono text-[10px] uppercase text-[#EB5757] border border-[#EB5757]/30 px-1.5 py-0.5 rounded bg-[#EB5757]/10">
+            <span className="font-mono text-[10px] uppercase text-risk-severe border border-risk-severe/30 px-1.5 py-0.5 rounded bg-risk-severe/10">
               {code}
             </span>
           </div>

@@ -38,12 +38,12 @@ export default function RecommendationBanner({ recommendation, recommendedRoute 
   let badgeText = 'SAFEST CHOICE';
 
   if (isRedWarning) {
-    containerStyle = 'bg-[#6B1D1D]/25 border-[#EB5757]/60';
-    badgeStyle = 'bg-[#EB5757]/20 border-[#EB5757]/50 text-[#EB5757]';
+    containerStyle = 'bg-risk-no-travel/25 border-risk-severe/60';
+    badgeStyle = 'bg-risk-severe/20 border-risk-severe/50 text-risk-severe';
     badgeText = 'WARNING: NO TRAVEL CONDITIONS';
   } else if (isOrangeWarning) {
-    containerStyle = 'bg-[#F2994A]/15 border-[#F2994A]/50';
-    badgeStyle = 'bg-[#F2994A]/20 border-[#F2994A]/50 text-[#F2994A]';
+    containerStyle = 'bg-risk-high/15 border-risk-high/50';
+    badgeStyle = 'bg-risk-high/20 border-risk-high/50 text-risk-high';
     badgeText = 'ADVISORY: SEVERE WEATHER';
   }
 

@@ -64,7 +64,7 @@ export default function RiskBreakdownBar({ milesByLevel = {}, totalMiles = 0, cl
               style={{
                 width: `${seg.percentage}%`,
                 backgroundColor: seg.meta.fill,
-                outline: seg.key === 'NO_TRAVEL' ? '1px solid rgba(255,255,255,0.4)' : undefined,
+                outline: seg.meta.outline || undefined,
                 animation: isReducedMotion
                   ? 'none'
                   : `risk-segment-grow 600ms cubic-bezier(0.22, 1, 0.36, 1) ${seg.index * 80}ms backwards`,
@@ -83,7 +83,7 @@ export default function RiskBreakdownBar({ milesByLevel = {}, totalMiles = 0, cl
               className="w-2 h-2 rounded-full shrink-0"
               style={{
                 backgroundColor: seg.meta.fill,
-                outline: seg.key === 'NO_TRAVEL' ? '1px solid rgba(255,255,255,0.4)' : undefined,
+                outline: seg.meta.outline || undefined,
               }}
               aria-hidden="true"
             />
