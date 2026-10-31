@@ -26,6 +26,9 @@ import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Reveal from '../motion/Reveal';
 import TripForm from '../trip-form/TripForm';
+import ResultsPanel from '../results/ResultsPanel';
+import ResultsSkeleton from '../results/ResultsSkeleton';
+import ErrorPanel from '../results/ErrorPanel';
 import { useTrip } from '../../state/TripProvider';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 
@@ -156,23 +159,19 @@ export default function PlannerSection() {
               {/* Trip Input Form */}
               <TripForm />
 
-              {/* Temporary Debug Result Output (Section 17.3, T-19 requirement, removed in T-22) */}
-              {state.result && (
-                <details className="mt-6 p-4 rounded-xl bg-surface-2 border border-border-strong text-xs font-mono">
-                  <summary className="cursor-pointer text-cobalt font-semibold select-none flex items-center justify-between">
-                    <span>Debug Result JSON</span>
-                    <span className="text-[11px] text-text-muted">
-                      {state.result.routes?.length || 0} routes calculated
-                    </span>
-                  </summary>
-                  <pre className="mt-3 p-3 bg-ink rounded-lg overflow-x-auto text-[11px] text-emerald-400 max-h-64">
-                    {JSON.stringify(state.result, null, 2)}
-                  </pre>
-                </details>
+              {/* Loading State: Results Skeleton with Shimmer */}
+              {state.status === 'loading' && <ResultsSkeleton />}
+
+              {/* Error State: Error Panel with Mapped Error Codes */}
+              {state.status === 'error' && state.error && (
+                <ErrorPanel error={state.error} />
               )}
 
-              {/* Empty State Instruction Block (shown when no result yet) */}
-              {!state.result && (
+              {/* Success State: Results Panel (Recommendation, RouteCards, CheckpointTable) */}
+              {state.status === 'success' && state.result && <ResultsPanel />}
+
+              {/* Empty State Instruction Block (shown before first plan or when idle) */}
+              {state.status === 'idle' && !state.result && (
                 <div className="bg-surface-2 border border-border-subtle rounded-2xl p-5 space-y-4 mt-6">
                   <div className="flex items-center gap-2 text-text-muted">
                     <svg

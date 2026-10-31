@@ -248,6 +248,12 @@ export default function MapView() {
 
     pulseMarkerRef.current = marker;
 
+    // Smoothly pan camera to center on selected checkpoint (instant under reduced motion)
+    map.easeTo({
+      center: [selectedCheckpoint.lng, selectedCheckpoint.lat],
+      duration: isReducedMotion ? 0 : 600,
+    });
+
     // 2. Create MapLibre Popup at selected checkpoint
     const popupHostNode = document.createElement('div');
     popupHostNode.className = 'checkpoint-popup-host';
