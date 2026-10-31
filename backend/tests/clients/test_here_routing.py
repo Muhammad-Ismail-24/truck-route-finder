@@ -126,6 +126,9 @@ class TestHttpClientFactory:
         assert err.status == 502
         assert "502" in str(err)
         assert issubclass(NoRouteFound, Exception)
+        from clients.http import WeatherDataError
+
+        assert issubclass(WeatherDataError, UpstreamError)
 
 
 # ---------------------------------------------------------------------------

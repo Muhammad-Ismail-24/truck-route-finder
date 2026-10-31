@@ -33,6 +33,17 @@ class NoRouteFound(Exception):
         super().__init__(message)
 
 
+class WeatherDataError(UpstreamError):
+    """Raised when weather data cannot be fetched or contains null / invalid values (D-21)."""
+
+    def __init__(
+        self,
+        detail: str = "Weather data unavailable or invalid.",
+        status: int = 502,
+    ) -> None:
+        super().__init__(service="open_meteo", status=status, detail=detail)
+
+
 class RetryTransport(httpx.BaseTransport):
     """Transport that retries requests once on timeout, 5xx, or 429 with backoff."""
 
