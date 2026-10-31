@@ -26,6 +26,7 @@ import {
   VIDEO_HEIGHT,
   VIDEO_FALLBACK_DURATION,
   BAND_EDGE_FINAL_RATIO,
+  SCENE_SPLIT_RATIO,
   MOBILE_EDGE_RATIO,
   MOBILE_WIDTH_MULTIPLIER,
   MOBILE_FRAME_CENTER_RATIO,
@@ -173,9 +174,13 @@ export default function useHeroScroll({
         edgePx = videoTop + BAND_EDGE_FINAL_RATIO * videoH;
       }
 
+      // Scene background split line inside clip at 90% of frame height (ARCHITECTURE.md Section 25.6)
+      const splitY = videoTop + SCENE_SPLIT_RATIO * videoH;
+
       // Write values directly to DOM via style properties / CSS variables
       track.style.setProperty('--hero-track-height', `${trackHeight}px`);
       scene.style.setProperty('--edge-px', `${edgePx}px`);
+      scene.style.setProperty('--hero-split-y', `${splitY}px`);
 
       if (video) {
         video.style.width = `${videoW}px`;
@@ -290,6 +295,7 @@ export default function useHeroScroll({
 
       if (letters) {
         letters.style.transform = `translate3d(${lettersX}px, 0, 0)`;
+        letters.style.visibility = r > 0 ? 'visible' : 'hidden';
       }
 
       // 4. Card reveal: background-clip:text gradient per spec

@@ -17,6 +17,7 @@ import {
   VIDEO_WIDTH,
   VIDEO_HEIGHT,
   BAND_EDGE_FINAL_RATIO,
+  SCENE_SPLIT_RATIO,
   MOBILE_EDGE_RATIO,
   MOBILE_WIDTH_MULTIPLIER,
   MOBILE_FRAME_CENTER_RATIO,
@@ -128,6 +129,11 @@ describe('Hero Scroll & Layout Formulas (HERO_SPEC.md & Section 25)', () => {
     expect(scale).toBeCloseTo(960 / 1080, 4);
     expect(videoTop).toBe(0);
     expect(edgePx).toBeCloseTo(0.448 * 960, 2);
+
+    // Scene background split line inside clip at 90% of frame height (Section 25.6)
+    const splitY = videoTop + SCENE_SPLIT_RATIO * videoH;
+    expect(SCENE_SPLIT_RATIO).toBe(0.90);
+    expect(splitY).toBeCloseTo(0.90 * 960, 2);
   });
 
   it('computes narrow/portrait 155vw framing and 36% edgePx correctly', () => {

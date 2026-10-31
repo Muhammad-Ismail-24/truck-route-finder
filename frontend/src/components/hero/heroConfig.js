@@ -23,6 +23,7 @@ export const VIDEO_FALLBACK_DURATION = 4.04; // Continuous 4.04s shot at 24fps
 
 // Sizing & Framing Constants
 export const BAND_EDGE_FINAL_RATIO = 0.448; // By 3.75s the band edge sits at 44.8% of frame height
+export const SCENE_SPLIT_RATIO = 0.90; // Scene background split line inside clip at 90% of frame height
 export const MOBILE_EDGE_RATIO = 0.36; // Band edge lands at 36% of viewport on phones
 export const MOBILE_WIDTH_MULTIPLIER = 1.55; // 155vw rule for mobile/portrait
 export const MOBILE_FRAME_CENTER_RATIO = 0.4; // 40% of frame sits at mid-screen
