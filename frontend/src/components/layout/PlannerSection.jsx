@@ -15,6 +15,7 @@
  *   - Mobile: map first (~45vh), sidebar below.
  * - Both panels wrapped in Reveal with 80ms stagger.
  * - Empty state with three numbered steps using mono numerals.
+ * - Temporarily displays result JSON in a collapsed debug <details> (removed in T-22).
  *
  * References:
  * ARCHITECTURE.md Section 17.1, 25.1, 25.4, 25.5, Decisions D-27, D-28.
@@ -22,9 +23,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Reveal from '../motion/Reveal';
+import TripForm from '../trip-form/TripForm';
+import { useTrip } from '../../state/TripProvider';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 
 export default function PlannerSection() {
+  const { state } = useTrip();
   const isReducedMotion = useReducedMotion();
   const [headerVisible, setHeaderVisible] = useState(false);
   const headerRef = useRef(null);
@@ -115,14 +119,14 @@ export default function PlannerSection() {
         </div>
 
         {/* Layout Grid: Desktop 2-column, Mobile stacked (Map first) */}
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 flex-1 lg:h-[calc(100vh-220px)] lg:min-h-[640px]">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 flex-1 lg:min-h-[720px]">
           {/* Left Column: Sidebar Panel (Desktop ~440px, Mobile order-2) */}
           <Reveal
             delay={0}
             className="w-full lg:w-[440px] flex-shrink-0 order-2 lg:order-1 flex flex-col"
           >
             <div className="bg-surface-1 border border-border-subtle rounded-[24px] p-6 lg:p-7 flex flex-col flex-1 overflow-y-auto max-h-full">
-              {/* Sidebar Shell Header */}
+              {/* Sidebar Header */}
               <div className="flex items-center justify-between border-b border-border-subtle pb-4 mb-6">
                 <div>
                   <h2 className="font-display text-lg uppercase tracking-wider text-white">
@@ -132,74 +136,87 @@ export default function PlannerSection() {
                     Configure route & vehicle load
                   </p>
                 </div>
-                <div className="w-2.5 h-2.5 rounded-full bg-cobalt animate-pulse" />
+                <div className="w-2.5 h-2.5 rounded-full bg-cobalt" />
               </div>
 
-              {/* Empty State Instruction Block (Section 25.4) */}
-              <div className="bg-surface-2 border border-border-subtle rounded-2xl p-5 space-y-4 my-auto">
-                <div className="flex items-center gap-2 text-text-muted">
-                  <svg
-                    className="w-4 h-4 text-cobalt flex-shrink-0"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="16" x2="12" y2="12" />
-                    <line x1="12" y1="8" x2="12.01" y2="8" />
-                  </svg>
-                  <span className="font-body text-xs uppercase tracking-wider font-semibold text-white">
-                    HOW IT WORKS
-                  </span>
+              {/* Trip Input Form */}
+              <TripForm />
+
+              {/* Temporary Debug Result Output (Section 17.3, T-19 requirement, removed in T-22) */}
+              {state.result && (
+                <details className="mt-6 p-4 rounded-xl bg-surface-2 border border-border-strong text-xs font-mono">
+                  <summary className="cursor-pointer text-cobalt font-semibold select-none flex items-center justify-between">
+                    <span>Debug Result JSON</span>
+                    <span className="text-[11px] text-text-muted">
+                      {state.result.routes?.length || 0} routes calculated
+                    </span>
+                  </summary>
+                  <pre className="mt-3 p-3 bg-ink rounded-lg overflow-x-auto text-[11px] text-emerald-400 max-h-64">
+                    {JSON.stringify(state.result, null, 2)}
+                  </pre>
+                </details>
+              )}
+
+              {/* Empty State Instruction Block (shown when no result yet) */}
+              {!state.result && (
+                <div className="bg-surface-2 border border-border-subtle rounded-2xl p-5 space-y-4 mt-6">
+                  <div className="flex items-center gap-2 text-text-muted">
+                    <svg
+                      className="w-4 h-4 text-cobalt flex-shrink-0"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="16" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                    <span className="font-body text-xs uppercase tracking-wider font-semibold text-white">
+                      HOW IT WORKS
+                    </span>
+                  </div>
+
+                  <ol className="space-y-3.5">
+                    <li className="flex items-start gap-3">
+                      <span className="font-mono text-sm font-semibold text-cobalt tabular bg-surface-3 px-2 py-0.5 rounded border border-border-subtle">
+                        01
+                      </span>
+                      <div className="font-body text-xs text-text-muted leading-relaxed">
+                        <strong className="text-white block font-medium">Enter Route Endpoints</strong>
+                        Select US origin and destination locations via autocomplete suggestions.
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="font-mono text-sm font-semibold text-cobalt tabular bg-surface-3 px-2 py-0.5 rounded border border-border-subtle">
+                        02
+                      </span>
+                      <div className="font-body text-xs text-text-muted leading-relaxed">
+                        <strong className="text-white block font-medium">Specify Load & Schedule</strong>
+                        Enter departure date/time and cargo weight (1–80,000 lb) for custom wind risk limits.
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <span className="font-mono text-sm font-semibold text-cobalt tabular bg-surface-3 px-2 py-0.5 rounded border border-border-subtle">
+                        03
+                      </span>
+                      <div className="font-body text-xs text-text-muted leading-relaxed">
+                        <strong className="text-white block font-medium">Analyze Safest Route</strong>
+                        Compare 3 truck routes scored mile-by-mile, inspect checkpoints, and scrub the 48h heatmap.
+                      </div>
+                    </li>
+                  </ol>
                 </div>
-
-                <ol className="space-y-3.5">
-                  <li className="flex items-start gap-3">
-                    <span className="font-mono text-sm font-semibold text-cobalt tabular bg-surface-3 px-2 py-0.5 rounded border border-border-subtle">
-                      01
-                    </span>
-                    <div className="font-body text-xs text-text-muted leading-relaxed">
-                      <strong className="text-white block font-medium">Enter Route Endpoints</strong>
-                      Select US origin and destination locations via autocomplete suggestions.
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="font-mono text-sm font-semibold text-cobalt tabular bg-surface-3 px-2 py-0.5 rounded border border-border-subtle">
-                      02
-                    </span>
-                    <div className="font-body text-xs text-text-muted leading-relaxed">
-                      <strong className="text-white block font-medium">Specify Load & Schedule</strong>
-                      Enter departure date/time and cargo weight (1–80,000 lb) for custom wind risk limits.
-                    </div>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="font-mono text-sm font-semibold text-cobalt tabular bg-surface-3 px-2 py-0.5 rounded border border-border-subtle">
-                      03
-                    </span>
-                    <div className="font-body text-xs text-text-muted leading-relaxed">
-                      <strong className="text-white block font-medium">Analyze Safest Route</strong>
-                      Compare 3 truck routes scored mile-by-mile, inspect checkpoints, and scrub the 48h heatmap.
-                    </div>
-                  </li>
-                </ol>
-              </div>
-
-              {/* Form placeholder footer note */}
-              <div className="mt-6 pt-4 border-t border-border-subtle text-center">
-                <span className="font-body text-[11px] text-text-faint uppercase tracking-wider">
-                  Interactive form arrives in T-19
-                </span>
-              </div>
+              )}
             </div>
           </Reveal>
 
           {/* Right Column: Map Frame Placeholder (Desktop flex-1, Mobile order-1 ~45vh) */}
           <Reveal
             delay={80}
-            className="w-full flex-1 order-1 lg:order-2 h-[45vh] lg:h-auto min-h-[340px] flex flex-col"
+            className="w-full flex-1 order-1 lg:order-2 h-[45vh] lg:h-auto min-h-[400px] flex flex-col"
           >
             <div className="bg-surface-1 border border-border-subtle rounded-[24px] w-full h-full relative overflow-hidden flex flex-col items-center justify-center p-6 text-center group">
               {/* Decorative Subtle Grid Backdrop */}

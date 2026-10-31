@@ -59,6 +59,34 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+@keyframes sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-sweep {
+  animation: sweep 1.4s cubic-bezier(0.4, 0.05, 0.55, 0.95) infinite;
+}
+
+@keyframes fadeSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-slide-down {
+  animation: fadeSlideDown var(--motion-fast, 150ms) var(--motion-ease) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
