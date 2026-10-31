@@ -6,7 +6,7 @@
  * ARCHITECTURE.md Section 17.5.
  */
 
-import { getRouteColor } from '../lib/risk/riskLevels';
+import { getRouteColor, HEATMAP_THRESHOLDS } from '../lib/risk/riskLevels';
 
 export const EMPTY_GEOJSON = Object.freeze({
   type: 'FeatureCollection',
@@ -111,6 +111,77 @@ export function buildCheckpointsGeoJSON(routes = []) {
         geometry: {
           type: 'Point',
           coordinates: [cp.lng, cp.lat],
+        },
+      });
+    }
+  }
+
+  return {
+    type: 'FeatureCollection',
+    features,
+  };
+}
+
+/**
+ * Builds a FeatureCollection of Point features with an intensity property
+ * for a specific forecast hour and weather metric.
+ *
+ * @param {import('../lib/types').HeatmapData} [heatmapData]
+ * @param {number} [hour=0] Forecast hour offset (0..48)
+ * @param {'RISK' | 'WIND' | 'RAIN' | 'SNOW'} [metric='RISK']
+ * @returns {GeoJSON.FeatureCollection<GeoJSON.Point>}
+ */
+export function buildHeatmapGeoJSON(heatmapData, hour = 0, metric = 'RISK') {
+  if (!heatmapData || !Array.isArray(heatmapData.points) || heatmapData.points.length === 0) {
+    return {
+      type: 'FeatureCollection',
+      features: [],
+    };
+  }
+
+  const clampedHour = Math.max(0, Math.min(48, Math.round(hour)));
+  const metricUpper = (metric || 'RISK').toUpperCase();
+  const features = [];
+
+  for (const point of heatmapData.points) {
+    if (typeof point.lng !== 'number' || typeof point.lat !== 'number') continue;
+
+    let intensity = 0;
+
+    switch (metricUpper) {
+      case 'WIND': {
+        const val = point.wind_mph?.[clampedHour] ?? 0;
+        intensity = Math.max(0, Math.min(1, val / HEATMAP_THRESHOLDS.WIND_MPH));
+        break;
+      }
+      case 'RAIN': {
+        const val = point.rain_in_hr?.[clampedHour] ?? 0;
+        intensity = Math.max(0, Math.min(1, val / HEATMAP_THRESHOLDS.RAIN_IN_HR));
+        break;
+      }
+      case 'SNOW': {
+        const val = point.snow_in_hr?.[clampedHour] ?? 0;
+        intensity = Math.max(0, Math.min(1, val / HEATMAP_THRESHOLDS.SNOW_IN_HR));
+        break;
+      }
+      case 'RISK':
+      default: {
+        const r = point.risk?.[clampedHour] ?? 0;
+        intensity = Math.max(0, Math.min(1, r / HEATMAP_THRESHOLDS.RISK));
+        break;
+      }
+    }
+
+    // Only emit points with non-zero intensity (reduces GPU buffer upload size)
+    if (intensity > 0) {
+      features.push({
+        type: 'Feature',
+        geometry: {
+          type: 'Point',
+          coordinates: [point.lng, point.lat],
+        },
+        properties: {
+          intensity,
         },
       });
     }

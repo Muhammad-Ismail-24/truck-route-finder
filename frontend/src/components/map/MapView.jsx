@@ -13,13 +13,14 @@
 import { useRef, useEffect, useMemo } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Marker as MapLibreMarker, Popup as MapLibrePopup } from 'maplibre-gl';
-import { useTrip } from '../../state/TripProvider';
+import { useTripCore, useHeatmap } from '../../state/TripProvider';
 import { useMapInstance } from '../../hooks/useMapInstance';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
 import {
   addRouteLayers,
   updateRouteSelection,
   ROUTES_SOURCE_ID,
+  ROUTES_CASING_LAYER_ID,
   ROUTES_LINE_LAYER_ID,
 } from '../../map/routeLayers';
 import {
@@ -28,16 +29,46 @@ import {
   CHECKPOINTS_SOURCE_ID,
   CHECKPOINTS_CIRCLE_LAYER_ID,
 } from '../../map/checkpointLayers';
+import {
+  addHeatmapLayer,
+  HEATMAP_SOURCE_ID,
+} from '../../map/heatmapLayer';
 import { calculateRoutesBounds, fitMapToBounds } from '../../map/bounds';
 import { animateRouteDrawIn } from '../../map/routeAnimation';
-import { buildRoutesGeoJSON, buildCheckpointsGeoJSON, EMPTY_GEOJSON } from '../../map/geojson';
+import {
+  buildRoutesGeoJSON,
+  buildCheckpointsGeoJSON,
+  buildHeatmapGeoJSON,
+  EMPTY_GEOJSON,
+} from '../../map/geojson';
 import { getRiskLevel } from '../../lib/risk/riskLevels';
 import CheckpointPopup from './CheckpointPopup';
+import HeatmapControls from './HeatmapControls';
 import './map.css';
+
+/**
+ * Isolated overlay subscriber to HeatmapContext.
+ * Ensures that slider drags re-render only this controls container,
+ * leaving MapView unrendered (Section 17.5).
+ */
+function HeatmapControlsContainer({ map, heatmapData }) {
+  const { heatmap, dispatch } = useHeatmap();
+
+  return (
+    <HeatmapControls
+      map={map}
+      heatmapData={heatmapData}
+      visible={heatmap.visible}
+      hour={heatmap.hour}
+      metric={heatmap.metric}
+      dispatch={dispatch}
+    />
+  );
+}
 
 export default function MapView() {
   const containerRef = useRef(null);
-  const { state, dispatch } = useTrip();
+  const { state, dispatch } = useTripCore();
   const { result, selectedRouteId, selectedCheckpointKey } = state;
   const isReducedMotion = useReducedMotion();
 
@@ -69,9 +100,12 @@ export default function MapView() {
     return cp ? { ...cp, route } : null;
   }, [selectedCheckpointKey, result]);
 
-  // Initialize route and checkpoint sources and layers when style is loaded
+  // Initialize heatmap, route and checkpoint sources and layers when style is loaded
   useEffect(() => {
     if (!map || !isLoaded) return;
+
+    // 0. Add heatmap layer (placed below routes-casing)
+    addHeatmapLayer(map, ROUTES_CASING_LAYER_ID, true);
 
     // 1. Add route line layers
     addRouteLayers(map, null);
@@ -157,6 +191,16 @@ export default function MapView() {
     const cpSource = map.getSource(CHECKPOINTS_SOURCE_ID);
     if (cpSource) {
       cpSource.setData(buildCheckpointsGeoJSON(result.routes));
+    }
+
+    // Populate heatmap GeoJSON source with initial frame
+    const hmSource = map.getSource(HEATMAP_SOURCE_ID);
+    if (hmSource) {
+      if (result.heatmap && Array.isArray(result.heatmap.points)) {
+        hmSource.setData(buildHeatmapGeoJSON(result.heatmap, 0, 'RISK'));
+      } else {
+        hmSource.setData(EMPTY_GEOJSON);
+      }
     }
 
     // Only run draw-in and camera zoom if this is a newly arrived plan result
@@ -310,6 +354,9 @@ export default function MapView() {
   return (
     <div className="w-full h-full relative rounded-[24px] overflow-hidden">
       <div ref={containerRef} className="w-full h-full" />
+      {result?.heatmap && (
+        <HeatmapControlsContainer map={map} heatmapData={result.heatmap} />
+      )}
     </div>
   );
 }
