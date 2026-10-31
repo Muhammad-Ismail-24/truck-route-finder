@@ -28,3 +28,4 @@ Each decision has an id. Do not change a locked decision without recording a new
 | D-22 | Region | US-focused: geocode suggestions restricted to `countryCode:USA`; units are mph, in/hr, lb, miles. | Spec units are US. |
 | D-23 | Route count | Request `alternatives=2` (→ up to 3 routes). If fewer than 3 are returned, show what exists and add notice `FEWER_THAN_3_ROUTES`. | Cannot manufacture routes that do not exist. |
 | D-24 | Truck weight for routing | Pass HERE `truck[grossWeight]` = `(load_weight_lb + TRUCK_TARE_LB) × 0.45359237` kg, capped at 80,000 lb. `TRUCK_TARE_LB = 32000`. | Routing needs gross weight; spec input is load weight. Documented assumption. |
+| D-25 | HERE Routing API v8 vehicle parameter | Use `vehicle[grossWeight]` instead of deprecated `truck[grossWeight]`, and `apiKey` query parameter. | Verified against live HERE Routing API v8 documentation during T-08. |

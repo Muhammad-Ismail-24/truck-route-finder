@@ -1,0 +1,60 @@
+{
+  "_comment": "SYNTHETIC FIXTURE based on HERE Routing API v8 specification. Will be replaced by real recorded response.",
+  "routes": [
+    {
+      "id": "route-uuid-1",
+      "sections": [
+        {
+          "id": "sec-1-1",
+          "type": "vehicle",
+          "summary": {
+            "duration": 18000,
+            "length": 500000,
+            "baseDuration": 17500
+          },
+          "polyline": "BFkqz_Hnm72QzgZ3-pFn-rBv71M"
+        },
+        {
+          "id": "sec-1-2",
+          "type": "vehicle",
+          "summary": {
+            "duration": 34000,
+            "length": 1114810,
+            "baseDuration": 33500
+          },
+          "polyline": "BForu9Hvg7oR321Bv_ihBv83C_ooP_lvGr0znB"
+        }
+      ]
+    },
+    {
+      "id": "route-uuid-2",
+      "sections": [
+        {
+          "id": "sec-2-1",
+          "type": "vehicle",
+          "summary": {
+            "duration": 54000,
+            "length": 1650000,
+            "baseDuration": 53000
+          },
+          "polyline": "BFkqz_Hnm72Q85X3zrI_juC_8ub_0hD_w1nB_4pIr1ue"
+        }
+      ]
+    },
+    {
+      "id": "route-uuid-3",
+      "sections": [
+        {
+          "id": "sec-3-1",
+          "type": "vehicle",
+          "summary": {
+            "duration": 56000,
+            "length": 1700000,
+            "baseDuration": 55000
+          },
+          "polyline": "BFkqz_Hnm72QjltI3otL_2oE_8ub_2oE_xweg78Dr_xkB"
+        }
+      ]
+    }
+  ]
+}
