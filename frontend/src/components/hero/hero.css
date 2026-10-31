@@ -3,6 +3,7 @@
  * Styles for the scroll-driven freight hero component.
  * All classes prefixed with hero-.
  * Responsive unit: --hero-u = min(100vw / 1440, 100vh / 960).
+ * Phone unit: --hero-u = min(100vw / 430, 1.4px).
  * Reference: ARCHITECTURE.md Section 25 and docs/HERO_SPEC.md.
  */
 
@@ -25,7 +26,7 @@
   }
 }
 
-/* Nav Layer (top of track, scrolls away) */
+/* Nav Layer (top of track, scrolls away naturally) */
 .hero-nav {
   position: absolute;
   top: 0;
@@ -146,6 +147,31 @@
   }
 }
 
+/* Layer 3: Speed Readout (top-left, visible once --ph = 1) */
+.hero-readout {
+  position: absolute;
+  top: calc(26 * var(--hero-u));
+  left: calc(52 * var(--hero-u));
+  z-index: 4;
+  font-family: var(--font-mono);
+  font-size: calc(10.5 * var(--hero-u));
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.05em;
+  color: var(--color-ink, #111);
+  pointer-events: none;
+  user-select: none;
+  opacity: var(--ph, 0);
+  transition: opacity var(--motion-base, 280ms) var(--motion-ease);
+}
+
+@media (max-width: 767px), (orientation: portrait) {
+  .hero-readout {
+    top: 20px;
+    left: 22px;
+    font-size: 11px;
+  }
+}
+
 /* Layer 4: Dark Band (from --edge-px to viewport bottom) */
 .hero-band {
   position: absolute;
@@ -228,6 +254,7 @@
 
 /* Individual Card */
 .hero-card {
+  --hero-card-s: 160%;
   flex-shrink: 0;
   width: calc(270 * var(--hero-u));
   box-sizing: border-box;
@@ -240,6 +267,24 @@
   border-left: none;
 }
 
+/* Card Icon (38u inline SVG) */
+.hero-card-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: calc(38 * var(--hero-u));
+  height: calc(38 * var(--hero-u));
+  margin-bottom: calc(16 * var(--hero-u));
+  color: var(--color-white, #fff);
+}
+
+.hero-card-icon {
+  width: 100%;
+  height: 100%;
+}
+
+/* Card Text Gradient Reveal:
+   white up to (s - 34%), cobalt at (s - 6%), transparent at (s + 26%) */
 .hero-card-title {
   display: flex;
   flex-direction: column;
@@ -247,8 +292,17 @@
   font-size: calc(26 * var(--hero-u));
   line-height: 1.05;
   text-transform: uppercase;
-  color: var(--color-white, #fff);
   margin: 0 0 calc(12 * var(--hero-u)) 0;
+  background: linear-gradient(
+    90deg,
+    #fff calc(var(--hero-card-s, 160%) - 34%),
+    var(--color-cobalt, #2f63ff) calc(var(--hero-card-s, 160%) - 6%),
+    transparent calc(var(--hero-card-s, 160%) + 26%)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .hero-card-title-line {
@@ -259,6 +313,135 @@
   font-family: var(--font-archivo), Archivo, sans-serif;
   font-size: calc(12.4 * var(--hero-u));
   line-height: 1.45;
-  color: var(--text-muted, rgba(255, 255, 255, 0.62));
   margin: 0;
+  opacity: 0.85;
+  background: linear-gradient(
+    90deg,
+    #fff calc(var(--hero-card-s, 160%) - 34%),
+    var(--color-cobalt, #2f63ff) calc(var(--hero-card-s, 160%) - 6%),
+    transparent calc(var(--hero-card-s, 160%) + 26%)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* Bottom Pill ("Plan a route")
+   Sits centred 36u from bottom; fades and rises 24px into place at settle (--ph = 1) */
+.hero-bottom-pill {
+  position: absolute;
+  bottom: calc(36 * var(--hero-u));
+  left: 50%;
+  transform: translateX(-50%) translateY(calc(24px * (1 - var(--ph, 0))));
+  opacity: var(--ph, 0);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-archivo), Archivo, sans-serif;
+  font-weight: 500;
+  font-size: calc(11 * var(--hero-u));
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-white, #fff);
+  text-decoration: none;
+  padding: calc(10 * var(--hero-u)) calc(24 * var(--hero-u));
+  border: 1px solid var(--border-strong, rgba(255, 255, 255, 0.28));
+  border-radius: 9999px;
+  background: rgba(17, 17, 17, 0.7);
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+  transition: opacity var(--motion-base, 280ms) var(--motion-ease),
+    transform var(--motion-base, 280ms) var(--motion-ease),
+    border-color var(--motion-fast, 150ms) ease,
+    background-color var(--motion-fast, 150ms) ease;
+}
+
+.hero-bottom-pill:hover {
+  border-color: var(--color-cobalt, #2f63ff);
+  background: rgba(47, 99, 255, 0.15);
+}
+
+.hero-bottom-pill:focus-visible {
+  outline: 2px solid var(--color-cobalt, #2f63ff);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   Phone Layout (below 768px or portrait) — HERO_SPEC.md "Phones"
+   ========================================================================== */
+@media (max-width: 767px), (orientation: portrait) {
+  .hero-strip {
+    top: calc(44 * var(--hero-u));
+    gap: calc(56 * var(--hero-u));
+    padding-left: 22px;
+  }
+
+  .hero-lead {
+    flex-direction: column;
+    gap: calc(20 * var(--hero-u));
+  }
+
+  .hero-headline {
+    font-size: calc(46 * var(--hero-u));
+  }
+
+  .hero-lead-paragraphs {
+    width: calc(300 * var(--hero-u));
+  }
+
+  .hero-lead-p {
+    font-size: calc(13 * var(--hero-u));
+  }
+
+  .hero-card {
+    width: calc(250 * var(--hero-u));
+  }
+
+  .hero-card-title {
+    font-size: calc(26 * var(--hero-u));
+  }
+
+  .hero-card-body {
+    font-size: calc(13 * var(--hero-u));
+  }
+
+  .hero-bottom-pill {
+    bottom: calc(24 * var(--hero-u));
+    font-size: 11px;
+    padding: 8px 18px;
+  }
+}
+
+/* ==========================================================================
+   Reduced Motion Overrides (prefers-reduced-motion: reduce)
+   Section 25.3: no ease smoothing, pill fade/rise disabled, smooth scroll off.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .hero-readout {
+    transition: none !important;
+  }
+
+  .hero-bottom-pill {
+    transition: none !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .hero-card-title {
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    background-clip: unset !important;
+    -webkit-text-fill-color: initial !important;
+    color: var(--color-white, #fff) !important;
+  }
+
+  .hero-card-body {
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    background-clip: unset !important;
+    -webkit-text-fill-color: initial !important;
+    color: var(--text-muted, rgba(255, 255, 255, 0.62)) !important;
+    opacity: 1 !important;
+  }
 }

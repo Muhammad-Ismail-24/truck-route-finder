@@ -66,26 +66,31 @@ export const STRIP_PARAGRAPHS = {
 export const HERO_CARDS = [
   {
     id: 1,
+    icon: 'route',
     title: 'TRUCK\nROUTES',
     body: 'Three truck-profile route options per trip, compared side by side on one map.',
   },
   {
     id: 2,
+    icon: 'weather',
     title: 'WEATHER AT\nEVERY MILE',
     body: 'Wind, rain and snow forecast for your arrival time, every 10, 25 or 50 miles.',
   },
   {
     id: 3,
+    icon: 'scale',
     title: 'LOAD-AWARE\nRISK RULES',
     body: 'Heavier loads trigger stricter wind limits, scored from Low to No Travel.',
   },
   {
     id: 4,
+    icon: 'shield',
     title: 'SMART\nRECOMMENDATION',
     body: 'Fewest Severe and High miles first, then average risk, then travel time.',
   },
   {
     id: 5,
+    icon: 'heatmap',
     title: '48-HOUR\nHEATMAP',
     body: 'Scrub a forecast heatmap along your corridor to find the safest window.',
   },

@@ -8,11 +8,13 @@
  * - Single requestAnimationFrame loop driven by an IntersectionObserver.
  * - Layout measurements and responsive framing for video (cover vs 155vw mobile rule).
  * - Video seeking with seeking guard (!video.seeking && diff > 1/60) and re-seek on seeked.
- * - All DOM writes via refs (video currentTime, --edge-px, strip/letters transforms, track height).
+ * - Speed readout: smoothed |dy|/dt / 32, capped at 99, two digits (visible when --ph = 1).
+ * - Card reveal: background-clip:text gradient with s computed per card's left position.
+ * - All DOM writes via refs (video currentTime, --edge-px, strip/letters transforms, track height, card s).
  * - ZERO React state changes on scroll to guarantee zero re-renders during scrubbing.
  *
  * References:
- * ARCHITECTURE.md Section 25 (25.1 - 25.3), D-25, D-26, D-29, D-30, D-32.
+ * ARCHITECTURE.md Section 25 (25.1 - 25.3, 25.6), D-25, D-26, D-29, D-30, D-32.
  * docs/HERO_SPEC.md.
  */
 
@@ -32,6 +34,7 @@ import {
   SETTLE_THRESHOLD,
   MIN_SEEK_DIFF,
   DURATION_SAFETY_OFFSET,
+  READOUT_LABEL,
 } from '../components/hero/heroConfig';
 
 /**
@@ -41,6 +44,7 @@ import {
  * @param {React.RefObject<HTMLVideoElement>} params.videoRef
  * @param {React.RefObject<HTMLDivElement>} params.lettersRef
  * @param {React.RefObject<HTMLDivElement>} params.stripRef
+ * @param {React.RefObject<HTMLDivElement>} [params.readoutRef]
  */
 export default function useHeroScroll({
   trackRef,
@@ -48,6 +52,7 @@ export default function useHeroScroll({
   videoRef,
   lettersRef,
   stripRef,
+  readoutRef,
 }) {
   const curTimeRef = useRef(0);
   const targetTimeRef = useRef(0);
@@ -55,6 +60,15 @@ export default function useHeroScroll({
   const rafIdRef = useRef(null);
   const lastSettledRef = useRef(false);
   const reducedMotionRef = useRef(false);
+
+  // Speed calculation metrics
+  const lastScrollYRef = useRef(0);
+  const lastTimestampRef = useRef(0);
+  const smoothedSpeedRef = useRef(0);
+
+  // Cached card elements and their relative offset inside the strip
+  const cardsRef = useRef([]);
+  const cardOffsetsRef = useRef([]);
 
   // Cached layout metrics to avoid reading layout every rAF tick
   const layoutRef = useRef({
@@ -77,6 +91,7 @@ export default function useHeroScroll({
     const video = videoRef.current;
     const letters = lettersRef.current;
     const strip = stripRef.current;
+    const readout = readoutRef ? readoutRef.current : null;
 
     if (!track || !scene) return;
 
@@ -126,6 +141,13 @@ export default function useHeroScroll({
       const lettersWidth = letters
         ? Math.max(letters.offsetWidth, letters.scrollWidth, letters.getBoundingClientRect().width)
         : 0;
+
+      // Cache card elements and their relative horizontal offsets
+      if (strip) {
+        const cardEls = Array.from(strip.querySelectorAll('.hero-card'));
+        cardsRef.current = cardEls;
+        cardOffsetsRef.current = cardEls.map((el) => el.offsetLeft);
+      }
 
       // Track height = (1 + A + B) * vh
       // B = (strip width + 0.45 * vw) / vw * 1.1 viewports
@@ -188,7 +210,38 @@ export default function useHeroScroll({
       const { vw, vh, stripWidth, lettersWidth, B, trackTop } = layoutRef.current;
       if (!vh || !vw) return;
 
-      const scrollY = Math.max(0, window.scrollY - trackTop);
+      const currentScrollY = window.scrollY;
+      const scrollY = Math.max(0, currentScrollY - trackTop);
+
+      // Speed calculation: smoothed |dy|/dt / 32, capped at 99, two digits
+      const now = performance.now();
+      const prevTime = lastTimestampRef.current || now;
+      const dt = (now - prevTime) / 1000;
+      lastTimestampRef.current = now;
+
+      const prevScrollY = lastScrollYRef.current;
+      lastScrollYRef.current = currentScrollY;
+
+      if (dt > 0.001 && dt < 0.2) {
+        const dy = Math.abs(currentScrollY - prevScrollY);
+        const instantSpeed = dy / dt / 32;
+        smoothedSpeedRef.current += (instantSpeed - smoothedSpeedRef.current) * 0.15;
+      } else {
+        smoothedSpeedRef.current += (0 - smoothedSpeedRef.current) * 0.15;
+      }
+
+      if (smoothedSpeedRef.current < 0.2) {
+        smoothedSpeedRef.current = 0;
+      }
+
+      if (readout) {
+        const speedVal = Math.min(Math.round(smoothedSpeedRef.current), 99);
+        const formatted = String(speedVal).padStart(2, '0');
+        const text = `${formatted} ${READOUT_LABEL}`;
+        if (readout.textContent !== text) {
+          readout.textContent = text;
+        }
+      }
 
       // 1. Clip scrub progress: q in [0, 1]
       const q = Math.min(Math.max(scrollY / (A_VIEWPORTS * vh), 0), 1);
@@ -199,7 +252,7 @@ export default function useHeroScroll({
       const targetTime = q * (duration - DURATION_SAFETY_OFFSET);
       targetTimeRef.current = targetTime;
 
-      // Ease toward target
+      // Ease toward target (factor 1 when reduced motion)
       const ease = reducedMotionRef.current ? 1 : EASE_FACTOR;
       curTimeRef.current += (targetTime - curTimeRef.current) * ease;
       if (Math.abs(targetTime - curTimeRef.current) < 0.0001) {
@@ -237,6 +290,27 @@ export default function useHeroScroll({
 
       if (letters) {
         letters.style.transform = `translate3d(${lettersX}px, 0, 0)`;
+      }
+
+      // 4. Card reveal: background-clip:text gradient per spec
+      // s = clamp((0.98 - cardLeft/vw) / 0.3, -0.4, 1.6) * 100%
+      const cardEls = cardsRef.current;
+      const offsets = cardOffsetsRef.current;
+      const cardCount = cardEls.length;
+
+      for (let i = 0; i < cardCount; i++) {
+        const cardEl = cardEls[i];
+        if (!cardEl) continue;
+
+        if (reducedMotionRef.current) {
+          cardEl.style.setProperty('--hero-card-s', '160%');
+        } else {
+          const cardLeft = stripX + (offsets[i] || 0);
+          const sRatio = (0.98 - cardLeft / vw) / 0.3;
+          const sClamped = Math.min(Math.max(sRatio, -0.4), 1.6);
+          const sPercent = sClamped * 100;
+          cardEl.style.setProperty('--hero-card-s', `${sPercent.toFixed(2)}%`);
+        }
       }
     };
 
@@ -326,5 +400,5 @@ export default function useHeroScroll({
         mql.removeListener(handleMotionChange);
       }
     };
-  }, [trackRef, sceneRef, videoRef, lettersRef, stripRef]);
+  }, [trackRef, sceneRef, videoRef, lettersRef, stripRef, readoutRef]);
 }

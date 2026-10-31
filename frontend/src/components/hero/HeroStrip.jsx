@@ -29,6 +29,7 @@ export default function HeroStrip({ stripRef }) {
           <HeroCard
             key={card.id || index}
             index={index}
+            icon={card.icon}
             title={card.title}
             body={card.body}
           />

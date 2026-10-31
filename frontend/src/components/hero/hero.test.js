@@ -20,7 +20,17 @@ import {
   MOBILE_EDGE_RATIO,
   MOBILE_WIDTH_MULTIPLIER,
   MOBILE_FRAME_CENTER_RATIO,
+  BOTTOM_PILL_TEXT,
+  READOUT_LABEL,
 } from './heroConfig';
+import {
+  RouteIcon,
+  WeatherIcon,
+  ScaleIcon,
+  ShieldIcon,
+  HeatmapIcon,
+  HeroIcon,
+} from './HeroIcons';
 
 describe('Hero Configuration & Constants (Section 25.2, D-25, D-26, D-29)', () => {
   it('defines placeholder brand name HAULCAST (D-26)', () => {
@@ -64,23 +74,33 @@ describe('Hero Configuration & Constants (Section 25.2, D-25, D-26, D-29)', () =
     expect(STRIP_PARAGRAPHS.p2).toContain('scored against your load weight');
   });
 
-  it('defines exactly 5 cards matching Section 25.2 table', () => {
+  it('defines exactly 5 cards matching Section 25.2 table with icons', () => {
     expect(HERO_CARDS).toHaveLength(5);
 
     expect(HERO_CARDS[0].title).toBe('TRUCK\nROUTES');
+    expect(HERO_CARDS[0].icon).toBe('route');
     expect(HERO_CARDS[0].body).toContain('Three truck-profile route options');
 
     expect(HERO_CARDS[1].title).toBe('WEATHER AT\nEVERY MILE');
+    expect(HERO_CARDS[1].icon).toBe('weather');
     expect(HERO_CARDS[1].body).toContain('every 10, 25 or 50 miles');
 
     expect(HERO_CARDS[2].title).toBe('LOAD-AWARE\nRISK RULES');
+    expect(HERO_CARDS[2].icon).toBe('scale');
     expect(HERO_CARDS[2].body).toContain('stricter wind limits');
 
     expect(HERO_CARDS[3].title).toBe('SMART\nRECOMMENDATION');
+    expect(HERO_CARDS[3].icon).toBe('shield');
     expect(HERO_CARDS[3].body).toContain('Fewest Severe and High miles first');
 
     expect(HERO_CARDS[4].title).toBe('48-HOUR\nHEATMAP');
+    expect(HERO_CARDS[4].icon).toBe('heatmap');
     expect(HERO_CARDS[4].body).toContain('Scrub a forecast heatmap along your corridor');
+  });
+
+  it('defines bottom pill and readout copy', () => {
+    expect(BOTTOM_PILL_TEXT).toBe('Plan a route');
+    expect(READOUT_LABEL).toBe('MPH');
   });
 });
 
@@ -125,6 +145,17 @@ describe('Hero Scroll & Layout Formulas (HERO_SPEC.md & Section 25)', () => {
     expect(videoTop).toBeCloseTo(edgePx - BAND_EDGE_FINAL_RATIO * videoH, 2);
   });
 
+  it('computes phone layout unit u correctly for 390x844', () => {
+    const vw = 390;
+    const u = Math.min(vw / 430, 1.4);
+    expect(u).toBeCloseTo(390 / 430, 4);
+    expect(u).toBeLessThan(1.4);
+
+    // Giant letters on phone = 180u
+    const phoneLettersSize = 180 * u;
+    expect(phoneLettersSize).toBeCloseTo(180 * (390 / 430), 2);
+  });
+
   it('verifies scroll scrub mapping math and limits', () => {
     const vh = 1000;
     const duration = 4.04;
@@ -160,5 +191,66 @@ describe('Hero Scroll & Layout Formulas (HERO_SPEC.md & Section 25)', () => {
 
     const stripXEnd = vw - 1 * (stripWidth + 0.45 * vw);
     expect(stripXEnd).toBe(vw - (stripWidth + 0.45 * vw));
+  });
+
+  describe('Card Reveal Gradient Formula (HERO_SPEC.md)', () => {
+    function computeS(cardLeft, vw) {
+      const sRatio = (0.98 - cardLeft / vw) / 0.3;
+      const sClamped = Math.min(Math.max(sRatio, -0.4), 1.6);
+      return sClamped * 100;
+    }
+
+    it('clamps s between -40% and 160%', () => {
+      const vw = 1000;
+      // Far right (cardLeft = 2 * vw)
+      expect(computeS(2000, vw)).toBe(-40);
+      // Far left (cardLeft = 0)
+      expect(computeS(0, vw)).toBe(160);
+    });
+
+    it('sweeps s as card moves across viewport', () => {
+      const vw = 1000;
+      // cardLeft = 0.98 * vw -> s = 0%
+      expect(computeS(980, vw)).toBe(0);
+      // cardLeft = 0.68 * vw -> s = 100%
+      expect(computeS(680, vw)).toBeCloseTo(100, 2);
+      // cardLeft = 0.50 * vw -> s = 160% (clamped maximum, solid white text)
+      expect(computeS(500, vw)).toBe(160);
+    });
+  });
+
+  describe('Speed Readout Calculation (HERO_SPEC.md & Section 25.2)', () => {
+    function computeSpeed(dy, dt) {
+      const instant = (dy / dt) / 32;
+      return Math.min(Math.round(instant), 99);
+    }
+
+    it('computes smoothed scroll speed capped at 99', () => {
+      // 320 px in 0.1s => 3200 px/s => 3200 / 32 = 100 => capped at 99
+      expect(computeSpeed(320, 0.1)).toBe(99);
+
+      // 64 px in 0.1s => 640 px/s => 640 / 32 = 20
+      expect(computeSpeed(64, 0.1)).toBe(20);
+
+      // 0 px in 0.1s => 0
+      expect(computeSpeed(0, 0.1)).toBe(0);
+    });
+
+    it('formats two digits with MPH label', () => {
+      const speed = 7;
+      const formatted = `${String(speed).padStart(2, '0')} ${READOUT_LABEL}`;
+      expect(formatted).toBe('07 MPH');
+    });
+  });
+
+  describe('Hero Icons (HeroIcons.jsx)', () => {
+    it('exports all 5 SVG icon components and unified HeroIcon helper', () => {
+      expect(RouteIcon).toBeDefined();
+      expect(WeatherIcon).toBeDefined();
+      expect(ScaleIcon).toBeDefined();
+      expect(ShieldIcon).toBeDefined();
+      expect(HeatmapIcon).toBeDefined();
+      expect(HeroIcon).toBeDefined();
+    });
   });
 });
