@@ -5,6 +5,18 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Read .env if present in backend directory
+env_path = BASE_DIR / ".env"
+if env_path.is_file():
+    with open(env_path, encoding="utf-8") as f:
+        for line in f:
+            clean_line = line.strip()
+            if clean_line and not clean_line.startswith("#") and "=" in clean_line:
+                key, val = clean_line.split("=", 1)
+                os.environ[key.strip()] = val.strip()
+
+HERE_API_KEY = os.getenv("HERE_API_KEY", "")
+
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "change-me-dev-secret-key")
 
 DEBUG = os.getenv("DJANGO_DEBUG", "false").lower() in ("true", "1", "yes")
@@ -80,6 +92,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "60/min",
     },
+    "EXCEPTION_HANDLER": "api.errors.custom_exception_handler",
 }
 
 TIME_ZONE = "UTC"
