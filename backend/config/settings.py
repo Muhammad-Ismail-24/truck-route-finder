@@ -58,6 +58,9 @@ CORS_ALLOWED_ORIGINS = [
     for origin in os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000").split(",")
     if origin.strip()
 ]
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
+]
 
 CACHE_BACKEND = os.getenv("CACHE_BACKEND", "locmem").lower()
 REDIS_URL = os.getenv("REDIS_URL", "")

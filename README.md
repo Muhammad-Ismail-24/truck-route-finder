@@ -1,7 +1,8 @@
 # HAULCAST — Weather-Aware Commercial Truck Route Planner
 
-> **Live Deployment**: `[Insert deployed frontend URL here]`  
-> **API Health Check**: `[Insert deployed frontend URL here]/api/v1/health`
+> **Live Frontend**: https://truck-route-finder-app.vercel.app  
+> **Live Backend API**: https://truck-route-finder.vercel.app  
+> **API Health Check**: https://truck-route-finder.vercel.app/api/v1/health
 
 HAULCAST is an enterprise-grade commercial truck route planning application. It evaluates up to three viable commercial truck corridors, predicts weather conditions at the exact estimated time of arrival (ETA) for checkpoints every 10, 25, or 50 miles, assesses severe weather hazards against gross vehicle load weight, ranks routes using a strict safety-first lexicographic algorithm, and renders a 48-hour spatio-temporal weather heatmap at 60 frames per second.
 
