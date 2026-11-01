@@ -12,7 +12,7 @@
 
 import { useRef, useEffect, useMemo, memo } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Marker as MapLibreMarker, Popup as MapLibrePopup } from 'maplibre-gl';
+import * as maplibregl from 'maplibre-gl';
 import { useTripCore, useHeatmap } from '../../state/TripProvider';
 import { useMapInstance } from '../../hooks/useMapInstance';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
@@ -73,7 +73,7 @@ export default memo(function MapView() {
   const { result, selectedRouteId, selectedCheckpointKey } = state;
   const isReducedMotion = useReducedMotion();
 
-  const { map, isLoaded } = useMapInstance({ containerRef });
+  const { map, isLoaded, mapError } = useMapInstance({ containerRef });
   const lastPlanResultRef = useRef(null);
   const animationRef = useRef(null);
   const pulseMarkerRef = useRef(null);
@@ -105,13 +105,13 @@ export default memo(function MapView() {
   useEffect(() => {
     if (!map || !isLoaded) return;
 
-    // 0. Add heatmap layer (placed below routes-casing)
-    addHeatmapLayer(map, ROUTES_CASING_LAYER_ID, true);
-
-    // 1. Add route line layers
+    // 1. Add route line layers (routes-casing and routes-line)
     addRouteLayers(map, null);
 
-    // 2. Add checkpoint circle and selected layers (above routes-line)
+    // 2. Add heatmap layer (placed below routes-casing)
+    addHeatmapLayer(map, ROUTES_CASING_LAYER_ID, true);
+
+    // 3. Add checkpoint circle and selected layers (above routes-line)
     addCheckpointLayers(map, null, null);
 
     // Click handler for route line
@@ -284,7 +284,7 @@ export default memo(function MapView() {
     markerEl.appendChild(ringEl);
     markerEl.appendChild(dotEl);
 
-    const marker = new MapLibreMarker({
+    const marker = new maplibregl.Marker({
       element: markerEl,
       anchor: 'center',
     })
@@ -314,7 +314,7 @@ export default memo(function MapView() {
     );
     popupRootRef.current = root;
 
-    const popup = new MapLibrePopup({
+    const popup = new maplibregl.Popup({
       closeButton: false,
       closeOnClick: false,
       className: 'custom-checkpoint-popup',
@@ -360,7 +360,34 @@ export default memo(function MapView() {
       className="w-full h-full relative rounded-[24px] overflow-hidden"
     >
       <div ref={containerRef} className="w-full h-full" tabIndex={0} aria-label="Interactive map canvas" />
-      {result?.heatmap && (
+      {mapError && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-surface-1 p-6 text-center select-none"
+        >
+          <div className="w-10 h-10 rounded-full border border-border-subtle bg-surface-2 flex items-center justify-center mb-3 text-text-muted">
+            <svg
+              className="w-5 h-5 text-text-faint"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+          <p className="font-body text-sm text-text-primary">
+            Map failed to load. Refresh to retry.
+          </p>
+        </div>
+      )}
+      {!mapError && result?.heatmap && (
         <HeatmapControlsContainer map={map} heatmapData={result.heatmap} />
       )}
     </div>

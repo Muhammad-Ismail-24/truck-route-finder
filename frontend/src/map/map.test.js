@@ -231,17 +231,17 @@ describe('Checkpoint Layer Expressions', () => {
 
   it('returns radius expression with selected route always visible and others hidden below zoom 7', () => {
     const radiusExpr = getCheckpointCircleRadiusExpression('route-1');
-    expect(radiusExpr[0]).toBe('case');
-    expect(radiusExpr[1]).toEqual(['==', ['get', 'route_id'], 'route-1']);
-    // Other routes branch has zoom < 7 check
-    expect(JSON.stringify(radiusExpr)).toContain('["<",["zoom"],7]');
+    expect(radiusExpr[0]).toBe('step');
+    expect(radiusExpr[1]).toEqual(['zoom']);
+    expect(radiusExpr[2]).toEqual(['case', ['==', ['get', 'route_id'], 'route-1'], 4.5, 0]);
+    expect(radiusExpr[3]).toBe(7);
   });
 
   it('returns opacity expression with other routes hidden below zoom 7', () => {
     const opacityExpr = getCheckpointCircleOpacityExpression('route-1');
-    expect(opacityExpr[0]).toBe('case');
-    expect(opacityExpr[1]).toEqual(['==', ['get', 'route_id'], 'route-1']);
-    expect(opacityExpr[2]).toBe(1.0);
-    expect(JSON.stringify(opacityExpr)).toContain('["<",["zoom"],7]');
+    expect(opacityExpr[0]).toBe('step');
+    expect(opacityExpr[1]).toEqual(['zoom']);
+    expect(opacityExpr[2]).toEqual(['case', ['==', ['get', 'route_id'], 'route-1'], 1.0, 0]);
+    expect(opacityExpr[3]).toBe(7);
   });
 });

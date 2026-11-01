@@ -41,72 +41,52 @@ export function getCheckpointCircleColorExpression() {
  * Circle radius expression.
  * Selected route: always visible, responsive to zoom.
  * Other routes: hidden (< zoom 7: 0 radius), small otherwise.
+ * Top-level expression is 'step' on ['zoom'] to conform to MapLibre style spec.
  * @param {string | null} selectedRouteId
  * @returns {any[]}
  */
 export function getCheckpointCircleRadiusExpression(selectedRouteId) {
   return [
-    'case',
-    ['==', ['get', 'route_id'], selectedRouteId || ''],
-    [
-      'interpolate',
-      ['linear'],
-      ['zoom'],
-      4, 4.5,
-      8, 6,
-      12, 8,
-    ],
-    [
-      'case',
-      ['<', ['zoom'], 7],
-      0,
-      [
-        'interpolate',
-        ['linear'],
-        ['zoom'],
-        7, 3,
-        12, 4.5,
-      ],
-    ],
+    'step',
+    ['zoom'],
+    ['case', ['==', ['get', 'route_id'], selectedRouteId || ''], 4.5, 0],
+    7,
+    ['case', ['==', ['get', 'route_id'], selectedRouteId || ''], 6, 3],
+    10,
+    ['case', ['==', ['get', 'route_id'], selectedRouteId || ''], 8, 4.5],
   ];
 }
 
 /**
  * Circle opacity expression.
  * Selected route: 1.0. Other routes: hidden below zoom 7, 0.7 otherwise.
+ * Top-level expression is 'step' on ['zoom'] to conform to MapLibre style spec.
  * @param {string | null} selectedRouteId
  * @returns {any[]}
  */
 export function getCheckpointCircleOpacityExpression(selectedRouteId) {
   return [
-    'case',
-    ['==', ['get', 'route_id'], selectedRouteId || ''],
-    1.0,
-    [
-      'case',
-      ['<', ['zoom'], 7],
-      0,
-      0.7,
-    ],
+    'step',
+    ['zoom'],
+    ['case', ['==', ['get', 'route_id'], selectedRouteId || ''], 1.0, 0],
+    7,
+    ['case', ['==', ['get', 'route_id'], selectedRouteId || ''], 1.0, 0.7],
   ];
 }
 
 /**
  * Stroke width expression.
+ * Top-level expression is 'step' on ['zoom'] to conform to MapLibre style spec.
  * @param {string | null} selectedRouteId
  * @returns {any[]}
  */
 export function getCheckpointStrokeWidthExpression(selectedRouteId) {
   return [
-    'case',
-    ['==', ['get', 'route_id'], selectedRouteId || ''],
-    1.5,
-    [
-      'case',
-      ['<', ['zoom'], 7],
-      0,
-      1,
-    ],
+    'step',
+    ['zoom'],
+    ['case', ['==', ['get', 'route_id'], selectedRouteId || ''], 1.5, 0],
+    7,
+    ['case', ['==', ['get', 'route_id'], selectedRouteId || ''], 1.5, 1],
   ];
 }
 
@@ -125,20 +105,17 @@ export function getCheckpointStrokeColorExpression() {
 
 /**
  * Stroke opacity expression.
+ * Top-level expression is 'step' on ['zoom'] to conform to MapLibre style spec.
  * @param {string | null} selectedRouteId
  * @returns {any[]}
  */
 export function getCheckpointStrokeOpacityExpression(selectedRouteId) {
   return [
-    'case',
-    ['==', ['get', 'route_id'], selectedRouteId || ''],
-    0.9,
-    [
-      'case',
-      ['<', ['zoom'], 7],
-      0,
-      0.6,
-    ],
+    'step',
+    ['zoom'],
+    ['case', ['==', ['get', 'route_id'], selectedRouteId || ''], 0.9, 0],
+    7,
+    ['case', ['==', ['get', 'route_id'], selectedRouteId || ''], 0.9, 0.6],
   ];
 }
 

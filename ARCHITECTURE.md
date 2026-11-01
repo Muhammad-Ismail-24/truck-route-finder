@@ -299,6 +299,8 @@ spotter-truck-routing/                      ← repo root
     ├── postcss.config.mjs
     ├── vitest.config.mjs
     ├── .env.example
+    ├── scripts/
+    │   └── copy-worker.mjs
     ├── public/
     │   └── favicon.ico
     └── src/
