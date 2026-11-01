@@ -2,8 +2,10 @@
 
 /**
  * @file CheckpointTable.jsx
- * Scrollable table of checkpoints along the selected route.
- * Columns: Mile, ETA, Wind with gusts, Rain, Snow, Risk badge.
+ * Compact two-line list of sampled checkpoints along the selected route.
+ * Line 1: Mile (mono), Risk badge, ETA
+ * Line 2: Wind (gust), Rain, Snow in mono tabular numerals.
+ * Zero horizontal scrolling at 440px sidebar width.
  * Features a sticky header, selected row highlighting, and click-to-select interaction.
  *
  * References:
@@ -51,77 +53,69 @@ export default function CheckpointTable({
         </span>
       </div>
 
-      {/* Scrollable Table Viewport with Sticky Header */}
-      <div className="max-h-[340px] overflow-y-auto overflow-x-auto">
-        <table className="w-full text-left text-xs border-collapse">
-          <thead className="sticky top-0 z-10 bg-surface-2 border-b border-border-subtle text-[11px] font-mono uppercase tracking-wider text-text-muted">
-            <tr>
-              <th className="py-2.5 px-3 whitespace-nowrap">Mile</th>
-              <th className="py-2.5 px-3 whitespace-nowrap">ETA</th>
-              <th className="py-2.5 px-3 whitespace-nowrap">Wind & Gusts</th>
-              <th className="py-2.5 px-3 whitespace-nowrap">Rain</th>
-              <th className="py-2.5 px-3 whitespace-nowrap">Snow</th>
-              <th className="py-2.5 px-3 text-right whitespace-nowrap">Risk</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border-subtle/30 font-mono tabular">
-            {route.checkpoints.map((cp) => {
-              const key = `${route.id}:${cp.index}`;
-              const isSelected = selectedCheckpointKey === key;
+      {/* Sticky Sub-Header Column Labels */}
+      <div className="sticky top-0 z-10 bg-surface-2 border-b border-border-subtle px-3 py-2 text-[10px] font-mono uppercase tracking-wider text-text-muted flex items-center justify-between select-none">
+        <span>Mile · Risk · ETA</span>
+        <span>Wind (Gust) · Rain · Snow</span>
+      </div>
 
-              return (
-                <tr
-                  key={key}
-                  tabIndex={0}
-                  role="button"
-                  aria-pressed={isSelected}
-                  onClick={() => onSelectCheckpoint(key)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      onSelectCheckpoint(key);
-                    }
-                  }}
-                  className={`cursor-pointer transition-colors select-none focus:outline-none focus:bg-surface-3 focus-visible:ring-2 focus-visible:ring-cobalt focus-visible:ring-inset ${
-                    isSelected
-                      ? 'bg-cobalt/20 hover:bg-cobalt/25 text-white font-medium border-l-2 border-l-cobalt'
-                      : 'hover:bg-surface-2/60 text-text-muted'
-                  }`}
-                >
-                  {/* Mile */}
-                  <td className="py-3 px-3 text-white font-medium whitespace-nowrap">
-                    {formatMilesValue(cp.mile, 1)}
-                  </td>
+      {/* Scrollable Viewport without horizontal scrollbar */}
+      <div className="max-h-[340px] overflow-y-auto overflow-x-hidden divide-y divide-border-subtle/30">
+        {route.checkpoints.map((cp) => {
+          const key = `${route.id}:${cp.index}`;
+          const isSelected = selectedCheckpointKey === key;
 
-                  {/* ETA */}
-                  <td className="py-3 px-3 whitespace-nowrap font-body text-[11px] text-text-primary">
-                    {formatUtcInBrowserTimezone(cp.eta_utc, { includeDate: false })}
-                  </td>
+          return (
+            <div
+              key={key}
+              tabIndex={0}
+              role="button"
+              aria-pressed={isSelected}
+              onClick={() => onSelectCheckpoint(key)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectCheckpoint(key);
+                }
+              }}
+              className={`p-2.5 px-3 transition-colors select-none cursor-pointer focus:outline-none focus:bg-surface-3 focus-visible:ring-2 focus-visible:ring-cobalt focus-visible:ring-inset ${
+                isSelected
+                  ? 'bg-cobalt/20 hover:bg-cobalt/25 text-white font-medium border-l-2 border-l-cobalt'
+                  : 'hover:bg-surface-2/60 text-text-muted'
+              }`}
+            >
+              {/* Line 1: Mile (mono) + Risk badge + ETA */}
+              <div className="flex items-center justify-between gap-2 mb-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono tabular font-semibold text-white text-xs">
+                    {formatMilesValue(cp.mile, 1)} mi
+                  </span>
+                  <RiskBadge level={cp.risk?.level} size="sm" />
+                </div>
+                <span className="font-mono tabular text-[11px] text-text-primary">
+                  {formatUtcInBrowserTimezone(cp.eta_utc, { includeDate: false })}
+                </span>
+              </div>
 
-                  {/* Wind */}
-                  <td className="py-3 px-3 whitespace-nowrap text-text-primary">
-                    {formatWind(cp.weather?.wind_mph, cp.weather?.wind_gust_mph)}
-                  </td>
-
-                  {/* Rain */}
-                  <td className="py-3 px-3 whitespace-nowrap">
+              {/* Line 2: Wind (gust), Rain, Snow in mono tabular numerals */}
+              <div className="flex items-center justify-between text-[11px] font-mono tabular gap-2 text-text-muted">
+                <span className="text-text-primary truncate">
+                  {formatWind(cp.weather?.wind_mph, cp.weather?.wind_gust_mph)}
+                </span>
+                <div className="flex items-center gap-2.5 flex-shrink-0 text-text-muted">
+                  <span>
+                    <span className="text-text-faint">Rain: </span>
                     {formatRain(cp.weather?.rain_in_hr)}
-                  </td>
-
-                  {/* Snow */}
-                  <td className="py-3 px-3 whitespace-nowrap">
+                  </span>
+                  <span>
+                    <span className="text-text-faint">Snow: </span>
                     {formatSnow(cp.weather?.snow_in_hr)}
-                  </td>
-
-                  {/* Risk Badge */}
-                  <td className="py-3 px-3 text-right whitespace-nowrap">
-                    <RiskBadge level={cp.risk?.level} size="sm" />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

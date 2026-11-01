@@ -46,28 +46,68 @@ export function calculateRoutesBounds(routes = []) {
 }
 
 /**
+ * Calculates responsive padding for fitBounds to ensure all routes and checkpoints
+ * are fully visible within the map frame without being obscured by overlay controls
+ * (such as HeatmapControls at the bottom and NavigationControl at top-right).
+ *
+ * @param {HTMLElement | null} [mapContainer]
+ * @returns {{ top: number, right: number, bottom: number, left: number }}
+ */
+export function calculateFitBoundsPadding(mapContainer) {
+  if (!mapContainer || typeof mapContainer.getBoundingClientRect !== 'function') {
+    return { top: 48, right: 64, bottom: 180, left: 48 };
+  }
+
+  const rect = mapContainer.getBoundingClientRect();
+  const width = rect.width || mapContainer.clientWidth || 800;
+  const height = rect.height || mapContainer.clientHeight || 600;
+
+  // Heatmap controls panel sits in the bottom area (~140-180px tall).
+  // On large desktop viewports, reserve ~180px bottom clearance; on compact frames,
+  // reserve proportional clearance so the route geometry remains centered in the visible space.
+  const bottomClearance = height > 600 ? 180 : Math.max(90, Math.floor(height * 0.28));
+  const topClearance = Math.min(60, Math.max(32, Math.floor(height * 0.08)));
+
+  // Navigation controls sit at top-right (~40px + margins).
+  const rightClearance = Math.min(70, Math.max(48, Math.floor(width * 0.08)));
+  const leftClearance = Math.min(50, Math.max(32, Math.floor(width * 0.06)));
+
+  return {
+    top: topClearance,
+    right: rightClearance,
+    bottom: bottomClearance,
+    left: leftClearance,
+  };
+}
+
+/**
  * Fits the MapLibre instance to the provided bounds.
  *
  * @param {import('maplibre-gl').Map} map
  * @param {[[number, number], [number, number]]} bounds
  * @param {Object} [options]
  * @param {boolean} [options.isReducedMotion=false]
- * @param {number | { top: number, bottom: number, left: number, right: number }} [options.padding=60]
+ * @param {number | { top: number, bottom: number, left: number, right: number }} [options.padding]
  */
 export function fitMapToBounds(
   map,
   bounds,
   {
     isReducedMotion = false,
-    padding = { top: 60, bottom: 60, left: 60, right: 60 },
+    padding,
   } = {}
 ) {
   if (!map || !bounds) return;
 
+  const resolvedPadding =
+    padding !== undefined
+      ? padding
+      : calculateFitBoundsPadding(map.getContainer ? map.getContainer() : null);
+
   const duration = isReducedMotion ? 0 : 900;
 
   map.fitBounds(bounds, {
-    padding,
+    padding: resolvedPadding,
     duration,
     easing: isReducedMotion ? undefined : easeOutCubic,
     maxZoom: 14,

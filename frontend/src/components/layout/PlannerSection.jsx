@@ -172,13 +172,13 @@ export default function PlannerSection() {
         </div>
 
         {/* Layout Grid: Desktop 2-column, Mobile stacked (Map first) */}
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 flex-1 lg:min-h-[720px]">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 flex-1 lg:items-start">
           {/* Left Column: Sidebar Panel (Desktop ~440px, Mobile order-2) */}
           <Reveal
             delay={0}
             className="w-full lg:w-[440px] flex-shrink-0 order-2 lg:order-1 flex flex-col"
           >
-            <div className="bg-surface-1 border border-border-subtle rounded-[24px] p-6 lg:p-7 flex flex-col flex-1 overflow-y-auto max-h-full">
+            <div className="bg-surface-1 border border-border-subtle rounded-[24px] p-6 lg:p-7 flex flex-col flex-1">
               {/* Sidebar Header */}
               <div className="flex items-center justify-between border-b border-border-subtle pb-4 mb-6">
                 <div>
@@ -262,14 +262,14 @@ export default function PlannerSection() {
             </div>
           </Reveal>
 
-          {/* Right Column: Rounded Map Frame (Desktop flex-1, Mobile order-1 ~45vh) */}
+          {/* Right Column: Rounded Map Frame (Desktop sticky frame, Mobile order-1 ~45svh) */}
           <Reveal
             delay={80}
-            className="w-full flex-1 order-1 lg:order-2 h-[45vh] lg:h-auto min-h-[400px] flex flex-col"
+            className="w-full flex-1 order-1 lg:order-2 h-[45svh] min-h-[350px] lg:h-[calc(100svh-32px)] lg:min-h-[480px] lg:sticky lg:top-4 lg:self-start flex flex-col"
           >
             <div
               ref={mapContainerRef}
-              className="bg-surface-1 border border-border-subtle rounded-[24px] w-full h-full relative overflow-hidden shadow-2xl"
+              className="bg-surface-1 border border-border-subtle rounded-[24px] w-full h-full relative overflow-hidden shadow-2xl flex flex-col"
             >
               {isMapShown ? (
                 <MapView />

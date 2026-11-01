@@ -107,9 +107,9 @@ export function useMapInstance({ containerRef, initialStyleUrl }) {
       setMap(instance);
     });
 
-    // Resize observer on container to handle sidebar opening/closing
+    // Resize observer on container to handle frame dimension changes, breakpoint switches, and layout shifts
     const resizeObserver = new ResizeObserver(() => {
-      if (instance && instance.loaded()) {
+      if (instance && typeof instance.resize === 'function') {
         instance.resize();
       }
     });

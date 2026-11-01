@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { calculateRoutesBounds } from './bounds';
+import { calculateRoutesBounds, calculateFitBoundsPadding, fitMapToBounds } from './bounds';
 import { buildRoutesGeoJSON, buildCheckpointsGeoJSON, EMPTY_GEOJSON } from './geojson';
 import { getMapStyleUrl, DEFAULT_MAP_STYLE_URL } from './mapStyle';
 import {
@@ -48,6 +48,59 @@ describe('Map Bounds Calculation', () => {
       [-106.2, 38.5],
       [-103.0, 41.2],
     ]);
+  });
+
+  it('calculates fitBounds padding with bottom clearance for heatmap controls', () => {
+    // Default fallback without container
+    const defaultPadding = calculateFitBoundsPadding(null);
+    expect(defaultPadding.bottom).toBe(180);
+    expect(defaultPadding.top).toBe(48);
+    expect(defaultPadding.right).toBe(64);
+    expect(defaultPadding.left).toBe(48);
+
+    // Desktop frame (1000 x 868)
+    const mockDesktopContainer = {
+      getBoundingClientRect: () => ({ width: 1000, height: 868 }),
+      clientWidth: 1000,
+      clientHeight: 868,
+    };
+    const desktopPadding = calculateFitBoundsPadding(mockDesktopContainer);
+    expect(desktopPadding.bottom).toBe(180);
+    expect(desktopPadding.top).toBeGreaterThanOrEqual(48);
+
+    // Compact mobile frame (360 x 380)
+    const mockMobileContainer = {
+      getBoundingClientRect: () => ({ width: 360, height: 380 }),
+      clientWidth: 360,
+      clientHeight: 380,
+    };
+    const mobilePadding = calculateFitBoundsPadding(mockMobileContainer);
+    expect(mobilePadding.bottom).toBeLessThanOrEqual(180);
+    expect(mobilePadding.bottom).toBeGreaterThanOrEqual(90);
+  });
+
+  it('calls map.fitBounds with calculated padding and animation duration', () => {
+    const mockMap = {
+      getContainer: vi.fn().mockReturnValue({
+        getBoundingClientRect: () => ({ width: 800, height: 600 }),
+        clientWidth: 800,
+        clientHeight: 600,
+      }),
+      fitBounds: vi.fn(),
+    };
+    const bounds = [[-105, 39], [-104, 40]];
+
+    fitMapToBounds(mockMap, bounds, { isReducedMotion: false });
+    expect(mockMap.fitBounds).toHaveBeenCalledWith(bounds, expect.objectContaining({
+      duration: 900,
+      padding: expect.objectContaining({ bottom: expect.any(Number) }),
+    }));
+
+    // Reduced motion uses duration 0
+    fitMapToBounds(mockMap, bounds, { isReducedMotion: true });
+    expect(mockMap.fitBounds).toHaveBeenCalledWith(bounds, expect.objectContaining({
+      duration: 0,
+    }));
   });
 });
 

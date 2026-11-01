@@ -77,7 +77,7 @@ export default function Reveal({
   const effectiveDelay = delay + staggerIndex * staggerStep;
   const style = {
     opacity: isVisible ? 1 : 0,
-    transform: isVisible ? 'translateY(0)' : 'translateY(16px)',
+    transform: isVisible ? 'none' : 'translateY(16px)',
     transitionProperty: 'opacity, transform',
     transitionDuration: 'var(--motion-slow, 600ms)',
     transitionTimingFunction: 'var(--motion-ease, cubic-bezier(0.22, 1, 0.36, 1))',

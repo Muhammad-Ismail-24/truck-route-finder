@@ -42,16 +42,16 @@ export default function MapLegend({ metric = 'RISK', className = '' }) {
   const config = LEGEND_CONFIGS[metricUpper] || LEGEND_CONFIGS.RISK;
 
   return (
-    <div className={`space-y-1.5 select-none text-left ${className}`}>
-      {/* Legend Title */}
-      <div className="flex items-center justify-between text-[11px] font-body text-text-muted">
-        <span className="font-medium text-white">{config.title}</span>
-        <span className="text-[10px] text-text-faint">{config.note}</span>
+    <div className={`space-y-1 select-none text-left ${className}`}>
+      {/* Legend Title and Note inline */}
+      <div className="flex items-center justify-between text-[10px] font-body text-text-muted leading-tight">
+        <span className="font-medium text-white truncate">{config.title}</span>
+        <span className="text-[10px] text-text-faint flex-shrink-0 ml-2">{config.note}</span>
       </div>
 
       {/* Gradient Color Ramp */}
       <div
-        className="w-full h-2 rounded-full border border-border-subtle"
+        className="w-full h-1.5 rounded-full border border-border-subtle"
         style={{
           background:
             'linear-gradient(to right, rgba(0,0,0,0) 0%, var(--color-risk-moderate) 25%, var(--color-risk-high) 50%, var(--color-risk-severe) 75%, var(--color-risk-no-travel) 100%)',
@@ -60,7 +60,7 @@ export default function MapLegend({ metric = 'RISK', className = '' }) {
       />
 
       {/* Threshold Labels */}
-      <div className="flex justify-between items-center text-[10px] font-mono tabular text-text-faint px-0.5">
+      <div className="flex justify-between items-center text-[9px] font-mono tabular text-text-faint px-0.5">
         {config.ticks.map((tick, i) => (
           <span key={i} className="first:text-left last:text-right">
             {tick}

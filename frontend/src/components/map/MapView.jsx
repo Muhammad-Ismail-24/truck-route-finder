@@ -208,7 +208,12 @@ export default memo(function MapView() {
     if (result !== lastPlanResultRef.current) {
       lastPlanResultRef.current = result;
 
-      // Fit map camera bounds to all returned routes
+      // Ensure canvas matches frame dimensions before calculating camera bounds
+      if (typeof map.resize === 'function') {
+        map.resize();
+      }
+
+      // Fit map camera bounds to all returned routes using frame's real padding
       const bounds = calculateRoutesBounds(result.routes);
       if (bounds) {
         fitMapToBounds(map, bounds, { isReducedMotion });
@@ -293,9 +298,11 @@ export default memo(function MapView() {
 
     pulseMarkerRef.current = marker;
 
-    // Smoothly pan camera to center on selected checkpoint (ease-out, instant under reduced motion)
-    map.easeTo({
+    // Smoothly fly camera to center on selected checkpoint (ease-out, instant under reduced motion)
+    const flyFn = typeof map.flyTo === 'function' ? map.flyTo.bind(map) : map.easeTo.bind(map);
+    flyFn({
       center: [selectedCheckpoint.lng, selectedCheckpoint.lat],
+      zoom: typeof map.getZoom === 'function' ? Math.max(map.getZoom(), 7.5) : 7.5,
       duration: isReducedMotion ? 0 : 600,
       easing: isReducedMotion ? undefined : easeOutCubic,
     });
