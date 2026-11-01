@@ -3,7 +3,7 @@
 Covers:
   - suggest(query) -> list[Place] (Section 11.3, D-22)
   - Endpoint: https://autosuggest.search.hereapi.com/v1/autosuggest
-  - Query parameters: q, at=39.8283,-98.5795, in=countryCode:USA, limit=5, apiKey
+  - Query parameters: q, in=bbox:-180,-90,180,90, limit=5, apiKey (worldwide, no US-only at/in)
   - Max 5 results returned
   - Filtering items lacking position coordinates
   - Fallback to title when address.label is missing
@@ -51,7 +51,7 @@ class TestHereGeocodingClient:
         assert p1.lng == -87.6298
 
     def test_suggest_query_parameters(self):
-        """Verifies outgoing query parameters: endpoint, q, at, in, limit, apiKey."""
+        """Verifies outgoing query parameters: endpoint, q, in=bbox, limit, apiKey."""
         recorded_request: httpx.Request | None = None
 
         def handler(request: httpx.Request) -> httpx.Response:
@@ -66,8 +66,8 @@ class TestHereGeocodingClient:
         assert "autosuggest" in str(recorded_request.url)
         params = recorded_request.url.params
         assert params["q"] == "Chicago"
-        assert params["at"] == "39.8283,-98.5795"
-        assert params["in"] == "countryCode:USA"
+        assert "at" not in params
+        assert params["in"] == "bbox:-180,-90,180,90"
         assert params["limit"] == "5"
         assert params.get("apiKey") == "my-key" or params.get("apikey") == "my-key"
 

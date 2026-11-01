@@ -235,7 +235,7 @@ export default function PlannerSection() {
                       </span>
                       <div className="font-body text-xs text-text-muted leading-relaxed">
                         <strong className="text-white block font-medium">Enter Route Endpoints</strong>
-                        Select US origin and destination locations via autocomplete suggestions.
+                        Select origin and destination locations via autocomplete suggestions.
                       </div>
                     </li>
                     <li className="flex items-start gap-3">

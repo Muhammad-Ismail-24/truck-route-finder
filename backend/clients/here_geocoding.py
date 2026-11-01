@@ -1,8 +1,8 @@
-"""HERE Geocoding & Search autosuggest client for US place suggestions.
+"""HERE Geocoding & Search autosuggest client for worldwide place suggestions.
 
 Implements Section 11.3 and Decision D-22 of ARCHITECTURE.md:
-  - suggest(query) -> list of Place(label, lat, lng), max 5, US only.
-  - Uses HERE autosuggest endpoint with in=countryCode:USA and US centroid at=39.8283,-98.5795.
+  - suggest(query) -> list of Place(label, lat, lng), max 5, worldwide.
+  - Uses HERE autosuggest endpoint with worldwide bounding box in=bbox:-180,-90,180,90.
   - geocode_one is deliberately omitted (not needed; frontend picks from suggestions).
 """
 
@@ -15,8 +15,7 @@ from clients.http import UpstreamError, create_client
 from domain.models import Place
 
 HERE_AUTOSUGGEST_URL: str = "https://autosuggest.search.hereapi.com/v1/autosuggest"
-US_CENTROID_AT: str = "39.8283,-98.5795"
-US_COUNTRY_FILTER: str = "countryCode:USA"
+WORLDWIDE_BBOX: str = "bbox:-180,-90,180,90"
 DEFAULT_LIMIT: int = 5
 
 
@@ -40,7 +39,7 @@ def suggest(
     api_key: str | None = None,
     limit: int = DEFAULT_LIMIT,
 ) -> list[Place]:
-    """Fetch place suggestions for user input, restricted to USA (D-22, Section 11.3).
+    """Fetch place suggestions for user input worldwide (D-22, Section 11.3).
 
     Args:
         query: User search text (minimum 3 characters per Section 15.2).
@@ -62,8 +61,7 @@ def suggest(
 
     params: dict[str, str] = {
         "q": clean_query,
-        "at": US_CENTROID_AT,
-        "in": US_COUNTRY_FILTER,
+        "in": WORLDWIDE_BBOX,
         "limit": str(limit),
         "apiKey": key,
     }

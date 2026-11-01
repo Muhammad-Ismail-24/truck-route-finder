@@ -32,7 +32,7 @@ Checks service operational status and upstream integration readiness.
 ---
 
 ### 1.2 Geocode Suggest
-Provides autocompletion suggestions for US locations powered by the HERE Geocoding & Search API.
+Provides autocompletion suggestions for worldwide locations powered by the HERE Geocoding & Search API.
 
 * **Method**: `GET`
 * **Path**: `/api/v1/geocode/suggest?q={query}`

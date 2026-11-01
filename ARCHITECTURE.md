@@ -26,7 +26,7 @@ A web app that helps a truck driver pick the safest of three routes using **weat
 
 **App behavior:**
 
-1. Geocode origin and destination (US-focused autocomplete).
+1. Geocode origin and destination (worldwide autocomplete).
 2. Request **3 truck routes** from a routing API.
 3. Place **checkpoints** along every route at the chosen interval.
 4. Compute the truck's **ETA** at each checkpoint and fetch the **forecast for that location and hour**.
@@ -78,7 +78,7 @@ Each decision has an id. Do not change a locked decision without recording a new
 | D-19 | Ranking | Lexicographic: **(No Travel miles, Severe miles, High miles, average risk, travel time)**, ascending. | Spec order, plus No Travel as tier 0 so a route through No Travel can never beat one without it. Documented extension. |
 | D-20 | Heatmap time basis | Slider value `h ∈ [0, 48]` = **hours after the departure hour**. Heatmap is **load-aware** (uses the same classifier) and can switch between Risk / Wind / Rain / Snow. | Ties the heatmap to the user's actual trip. |
 | D-21 | Weather failure policy | If weather data cannot be fetched after one retry, return **HTTP 502** with a clear error. Never guess or default weather values. | Correctness over leniency. |
-| D-22 | Region | US-focused: geocode suggestions restricted to `countryCode:USA`; units are mph, in/hr, lb, miles. | Spec units are US. |
+| D-22 | Region | Worldwide locations; units remain mph, in/hr, lb, miles | Assessment does not require US-only; Open-Meteo returns specified units globally. |
 | D-23 | Route count | Request `alternatives=2` (→ up to 3 routes). If fewer than 3 are returned, show what exists and add notice `FEWER_THAN_3_ROUTES`. | Cannot manufacture routes that do not exist. |
 | D-24 | Truck weight for routing | Pass HERE `truck[grossWeight]` = `(load_weight_lb + TRUCK_TARE_LB) × 0.45359237` kg, capped at 80,000 lb. `TRUCK_TARE_LB = 32000`. | Routing needs gross weight; spec input is load weight. Documented assumption. |
 | D-25 | Landing hero | Page `/` opens with a scroll-scrubbed video hero (mechanics from `docs/HERO_SPEC.md`), ported to a React client component. Directly after it comes the planner section (`#planner`). | Strong first impression; hero explains the product, planner does the work. |
@@ -582,7 +582,7 @@ Shared `httpx.Client` factory: timeout 10 s (connect 5 s), 1 retry on timeout / 
 - **Verify** parameter names and units against current HERE docs on first run; record a trimmed real response in `tests/fixtures/here_routes_sample.json`.
 
 ### 11.3 `here_geocoding.py`
-- `suggest(query) -> list[Place]` : uses HERE Geocoding & Search with `in=countryCode:USA`, `limit=5` (use the endpoint that supports typeahead; if autosuggest requires `at`, use the US centroid `39.8283,-98.5795`). Returns `Place(label, lat, lng)`.
+- `suggest(query) -> list[Place]` : uses HERE Geocoding & Search autosuggest endpoint with worldwide bounding box `in=bbox:-180,-90,180,90`, `limit=5`. Returns `Place(label, lat, lng)`.
 - `geocode_one(query)` is **not needed**: the frontend sends coordinates picked from suggestions; the backend never re-geocodes.
 - Verify against current HERE docs and record fixture `here_geocode_sample.json`.
 
@@ -683,7 +683,7 @@ Base: same origin `/api/v1` from the browser (Next rewrite). JSON only. No auth.
 `200 {"status": "ok", "version": "1.0.0"}`
 
 ### 15.2 `GET /api/v1/geocode/suggest?q=<text>`
-- `q` min 3 chars, max 100. Returns `200`:
+- `q` min 3 chars, max 100. Returns `200` with up to 5 worldwide suggestions:
 ```json
 { "results": [ { "label": "Chicago, IL, United States", "lat": 41.8781, "lng": -87.6298 } ] }
 ```

@@ -68,7 +68,7 @@ export default function TripForm() {
         label="Origin"
         value={form.origin}
         onChange={(val) => handleFieldChange('origin', val)}
-        placeholder="Enter US starting city or depot"
+        placeholder="Enter starting city or depot"
       />
 
       {/* Destination Autocomplete */}
@@ -77,7 +77,7 @@ export default function TripForm() {
         label="Destination"
         value={form.destination}
         onChange={(val) => handleFieldChange('destination', val)}
-        placeholder="Enter US destination address or hub"
+        placeholder="Enter destination address or hub"
         error={
           form.origin &&
           form.destination &&

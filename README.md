@@ -15,7 +15,7 @@ The application opens with an editorial scroll-scrubbed hero narrative that intr
 | Section | Preview | Description |
 | :--- | :--- | :--- |
 | **Landing Hero** | *`![Hero Narrative](docs/screenshots/hero.png)`* | Scroll-scrubbed interactive 3D video sequence with dynamic typography passing behind the truck cabin. |
-| **Route Planner** | *`![Route Planner](docs/screenshots/planner.png)`* | Dark-mode planner with US geocoding autocompletion, departure timepicker, load weight input, and interval selector. |
+| **Route Planner** | *`![Route Planner](docs/screenshots/planner.png)`* | Dark-mode planner with worldwide geocoding autocompletion, departure timepicker, load weight input, and interval selector. |
 | **Results & Comparison** | *`![Results Comparison](docs/screenshots/results.png)`* | Side-by-side comparison of up to 3 truck routes, safety breakdown bars, recommended route banner, and checkpoint table. |
 | **48-Hour Heatmap** | *`![Spatio-Temporal Heatmap](docs/screenshots/heatmap.png)`* | GPU-accelerated MapLibre GL heatmap layer with a zero-friction 0–48 hour slider scrubbing future weather movement. |
 
@@ -204,7 +204,7 @@ ruff check .
 ```
 
 ### 7.2 Frontend Tests & Linting
-The frontend test suite contains 128 tests covering state reducers, risk formatting, motion components, GeoJSON frame generation, and accessibility:
+The frontend test suite contains 130 tests covering state reducers, risk formatting, motion components, GeoJSON frame generation, and accessibility:
 ```bash
 # Run Vitest test runner
 cd frontend
@@ -239,6 +239,8 @@ In compliance with project specifications, the following architectural boundarie
 4. **API Rate Limits**: The Open-Meteo free tier is restricted to non-commercial evaluation (~10,000 calls/day), and HERE platform freemium transactions apply.
 5. **Serverless Cache Isolation**: In-memory `LocMemCache` is local to each serverless container instance on Vercel. Shared corridor caching across distributed lambdas requires an external Redis instance.
 6. **Hero Media Assets**: Hero background video and poster rely on static CloudFront CDN endpoints specified in the design spec.
+7. **Commercial Truck Load Limits**: The maximum load limit is enforced at 80,000 lb (`MAX_LOAD_LB = 80,000`), following the US legal gross vehicle maximum weight sanity threshold. While routing is supported worldwide, regional weight classifications and limits in other jurisdictions may differ.
+8. **International Truck Routing Coverage**: Commercial truck road attributes (such as height/weight clearances, truck turn restrictions, and hazardous material rules) are provided by HERE Routing API v8, and data density varies across international road networks.
 
 ---
 

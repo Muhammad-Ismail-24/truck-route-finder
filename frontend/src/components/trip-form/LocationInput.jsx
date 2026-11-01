@@ -28,7 +28,7 @@ export default function LocationInput({
   label,
   value,
   onChange,
-  placeholder = 'City, State, or Address',
+  placeholder = 'Enter a city or address',
   error,
 }) {
   const [userTypedText, setUserTypedText] = useState(null);
@@ -223,9 +223,6 @@ export default function LocationInput({
                 }`}
               >
                 <span className="truncate">{place.label}</span>
-                <span className="font-mono text-[11px] opacity-60 flex-shrink-0 ml-2">
-                  US
-                </span>
               </li>
             );
           })}
@@ -244,7 +241,7 @@ export default function LocationInput({
         </p>
       ) : !isSelected && currentDisplayText.length >= 2 && !loading && isOpen && suggestions.length === 0 ? (
         <p className="text-[11px] text-text-faint font-body mt-0.5">
-          No matching US locations found. Try a city or state name.
+          No matching locations found. Try a city or address.
         </p>
       ) : null}
     </div>

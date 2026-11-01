@@ -41,13 +41,13 @@ health_check = HealthView.as_view()
 
 
 class GeocodeSuggestView(APIView):
-    """US address and place autocomplete endpoint (Section 15.2, D-22)."""
+    """Worldwide address and place autocomplete endpoint (Section 15.2, D-22)."""
 
     permission_classes: list[Any] = []
     throttle_classes = [AnonRateThrottle]
 
     def get(self, request: Request) -> Response:
-        """Fetch up to 5 US suggestions for search text with 24-hour caching."""
+        """Fetch up to 5 worldwide suggestions for search text with 24-hour caching."""
         serializer = GeocodeSuggestQuerySerializer(data=request.query_params)
         serializer.is_valid(raise_exception=True)
         q = serializer.validated_data["q"]
