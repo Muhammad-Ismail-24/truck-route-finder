@@ -62,27 +62,42 @@ def custom_exception_handler(exc: Exception, context: dict[str, Any]) -> Respons
         message = str(exc) if str(exc) else "No truck route found between these points."
         details = {}
 
-    # 3. Weather Upstream Errors (502)
+    # 3. Weather Upstream Errors (502 / 429)
     elif isinstance(exc, WeatherDataError):
-        code = "UPSTREAM_WEATHER_ERROR"
-        status_code = status.HTTP_502_BAD_GATEWAY
-        message = (
-            exc.detail
-            if hasattr(exc, "detail") and exc.detail
-            else "Weather service unavailable."
-        )
-        details = {}
+        upstream_status = getattr(exc, "status", 502)
+        if upstream_status == status.HTTP_429_TOO_MANY_REQUESTS:
+            code = "RATE_LIMITED"
+            status_code = status.HTTP_429_TOO_MANY_REQUESTS
+            message = "The weather service is busy. Please try again in a minute."
+            details = {}
+            if getattr(exc, "retry_after_s", None) is not None:
+                details["retry_after_s"] = exc.retry_after_s
+        else:
+            code = "UPSTREAM_WEATHER_ERROR"
+            status_code = status.HTTP_502_BAD_GATEWAY
+            message = (
+                exc.detail
+                if hasattr(exc, "detail") and exc.detail
+                else "Weather service unavailable."
+            )
+            details = {}
 
     # 4. Other Upstream Service Errors (502 / 429)
     elif isinstance(exc, UpstreamError):
         service = getattr(exc, "service", "unknown")
         upstream_status = getattr(exc, "status", 502)
         exc_detail = getattr(exc, "detail", "")
+        details = {}
 
         if upstream_status == status.HTTP_429_TOO_MANY_REQUESTS:
             code = "RATE_LIMITED"
             status_code = status.HTTP_429_TOO_MANY_REQUESTS
-            message = "Upstream rate limit exceeded."
+            if "weather" in service or "meteo" in service:
+                message = "The weather service is busy. Please try again in a minute."
+            else:
+                message = "Upstream rate limit exceeded."
+            if getattr(exc, "retry_after_s", None) is not None:
+                details["retry_after_s"] = exc.retry_after_s
         elif "routing" in service or "geocoding" in service:
             code = "UPSTREAM_ROUTING_ERROR"
             status_code = status.HTTP_502_BAD_GATEWAY
@@ -95,7 +110,6 @@ def custom_exception_handler(exc: Exception, context: dict[str, Any]) -> Respons
             code = "UPSTREAM_ROUTING_ERROR"
             status_code = status.HTTP_502_BAD_GATEWAY
             message = exc_detail if exc_detail else "Upstream service error."
-        details = {}
 
     # 5. Throttling (429)
     elif isinstance(exc, exceptions.Throttled):
@@ -139,4 +153,6 @@ def custom_exception_handler(exc: Exception, context: dict[str, Any]) -> Respons
 
     response = Response(payload, status=status_code)
     response["X-Request-ID"] = request_id
+    if "retry_after_s" in details and details["retry_after_s"] is not None:
+        response["Retry-After"] = str(details["retry_after_s"])
     return response

@@ -12,9 +12,11 @@ Covers:
 
 import hashlib
 from datetime import date, datetime, timezone
+from typing import Any
 
 import pytest
 
+from clients.http import WeatherDataError
 from domain.models import HourlySeries, LatLng
 from planner.cache import (
     ROUTE_CACHE_TTL_S,
@@ -181,3 +183,97 @@ class TestWeatherCacheAvoidsRefetch:
         # Fetcher was called ONLY for p2 and p3 (p1 was cached)
         assert set(requested_to_fetch) == {p2, p3}
         assert p1 not in requested_to_fetch
+
+    def test_partial_cache_on_chunk_failure_retry_only_fetches_missing_with_callback_client(self):
+        """Succeeded chunks are cached on midway failure and retry fetches only missing points."""
+        chunk1 = [(40.0 + (i * 0.01), -80.0) for i in range(50)]
+        chunk2 = [(41.0 + (i * 0.01), -80.0) for i in range(50)]
+        all_points = chunk1 + chunk2
+        start = "2026-11-02"
+        end = "2026-11-02"
+
+        calls_received: list[list[tuple[float, float]]] = []
+        attempt = 0
+
+        def fake_weather_client(
+            keys: list[tuple[float, float]],
+            s_date: str,
+            e_date: str,
+            on_chunk_success: Any = None,
+        ) -> dict[tuple[float, float], HourlySeries]:
+            nonlocal attempt
+            attempt += 1
+            calls_received.append(list(keys))
+
+            # Simulate chunking behavior: 50 items per chunk
+            res: dict[tuple[float, float], HourlySeries] = {}
+            for i in range(0, len(keys), 50):
+                sub_chunk = keys[i : i + 50]
+                if attempt == 1 and i >= 50:
+                    # Fail on chunk 2 on first attempt
+                    raise WeatherDataError("Upstream rate limited", status=429, retry_after_s=5)
+                sub_res = {k: self._make_dummy_series() for k in sub_chunk}
+                if on_chunk_success is not None:
+                    on_chunk_success(sub_res)
+                res.update(sub_res)
+            return res
+
+        # Attempt 1: fails on chunk 2, but chunk 1 should be cached
+        with pytest.raises(WeatherDataError) as exc_info:
+            fetch_weather_with_cache(all_points, start, end, fake_weather_client)
+
+        assert exc_info.value.status == 429
+        assert len(calls_received) == 1
+        assert len(calls_received[0]) == 100
+
+        # Attempt 2 (immediate retry): chunk 1 is in cache, so only chunk 2 is requested!
+        result = fetch_weather_with_cache(all_points, start, end, fake_weather_client)
+
+        assert len(result) == 100
+        assert len(calls_received) == 2
+        # On second attempt, fake_weather_client was called ONLY with chunk 2 (50 points)
+        assert len(calls_received[1]) == 50
+        assert set(calls_received[1]) == set(chunk2)
+
+    def test_partial_cache_on_chunk_failure_retry_with_chunk_size_client(self):
+        """When a fake client exposes chunk_size and fails midway, succeeded chunks are cached."""
+        chunk1 = [(30.0 + (i * 0.01), -90.0) for i in range(25)]
+        chunk2 = [(31.0 + (i * 0.01), -90.0) for i in range(25)]
+        all_points = chunk1 + chunk2
+        start = "2026-11-02"
+        end = "2026-11-02"
+
+        calls_received: list[list[tuple[float, float]]] = []
+        attempt = 0
+
+        class FakeChunkedClient:
+            chunk_size = 25
+
+            def __call__(
+                self,
+                keys: list[tuple[float, float]],
+                s_date: str,
+                e_date: str,
+            ) -> dict[tuple[float, float], HourlySeries]:
+                nonlocal attempt
+                attempt += 1
+                calls_received.append(list(keys))
+                if attempt == 2:
+                    # Second chunk in attempt 1
+                    raise WeatherDataError("Simulated 500 error", status=500)
+                return {k: TestWeatherCacheAvoidsRefetch._make_dummy_series(self) for k in keys}
+
+        client = FakeChunkedClient()
+
+        # Call 1: chunk 1 succeeds (attempt 1), chunk 2 fails (attempt 2)
+        with pytest.raises(WeatherDataError):
+            fetch_weather_with_cache(all_points, start, end, client)
+
+        assert len(calls_received) == 2
+
+        # Immediate retry: chunk 1 is cached, so only chunk 2 is requested!
+        result = fetch_weather_with_cache(all_points, start, end, client)
+        assert len(result) == 50
+        # Total calls now 3: attempt 3 requested ONLY chunk 2
+        assert len(calls_received) == 3
+        assert set(calls_received[2]) == set(chunk2)

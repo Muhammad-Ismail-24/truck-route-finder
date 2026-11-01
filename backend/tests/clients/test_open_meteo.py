@@ -17,13 +17,15 @@ Covers:
 
 import copy
 import json
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timezone
 from pathlib import Path
+from unittest.mock import patch
 
 import httpx
 import pytest
 
-from clients.http import UpstreamError, create_client
+from clients.http import RetryTransport, UpstreamError, create_client, parse_retry_after
 from clients.open_meteo import (
     ATTRIBUTION,
     CHUNK_SIZE,
@@ -415,3 +417,146 @@ class TestOpenMeteoClient:
         """Verifies CHUNK_SIZE=50 and attribution string."""
         assert CHUNK_SIZE == 50
         assert ATTRIBUTION == "Weather data by Open-Meteo.com"
+
+    def test_persistent_429_raises_weather_data_error_with_retry_after(self):
+        """Open-Meteo returning 429 raises WeatherDataError with status=429 and retry_after_s."""
+        calls = 0
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            nonlocal calls
+            calls += 1
+            return httpx.Response(429, headers={"Retry-After": "4"}, text="Rate limit exceeded")
+
+        client = create_client(transport=httpx.MockTransport(handler), backoff_s=0.0)
+        with pytest.raises(WeatherDataError) as exc_info:
+            fetch_hourly(
+                points=[self.chicago_key],
+                start_date=self.start_date,
+                end_date=self.end_date,
+                client=client,
+            )
+
+        assert calls == 2
+        assert exc_info.value.status == 429
+        assert exc_info.value.retry_after_s == 4
+
+    def test_retry_transport_delays_and_capping(self):
+        """RetryTransport honors Retry-After capped at 5s, otherwise jittered 0.4-0.8s."""
+        mock_transport = httpx.MockTransport(lambda req: httpx.Response(200))
+        transport = RetryTransport(mock_transport)
+
+        # 429 with Retry-After: 3 -> 3.0s
+        resp_3 = httpx.Response(429, headers={"Retry-After": "3"})
+        assert transport._get_retry_delay(resp_3) == 3.0
+
+        # 429 with Retry-After: 15 -> capped at 5.0s
+        resp_15 = httpx.Response(429, headers={"Retry-After": "15"})
+        assert transport._get_retry_delay(resp_15) == 5.0
+
+        # 429 without Retry-After -> jittered between 0.4 and 0.8s
+        resp_none = httpx.Response(429)
+        delay = transport._get_retry_delay(resp_none)
+        assert 0.4 <= delay <= 0.8
+
+        # 500 error -> jittered between 0.4 and 0.8s
+        resp_500 = httpx.Response(500)
+        delay_500 = transport._get_retry_delay(resp_500)
+        assert 0.4 <= delay_500 <= 0.8
+
+        # With backoff_s=0.0 -> always 0.0
+        fast_transport = RetryTransport(mock_transport, backoff_s=0.0)
+        assert fast_transport._get_retry_delay(resp_3) == 0.0
+        assert fast_transport._get_retry_delay(resp_15) == 0.0
+        assert fast_transport._get_retry_delay(resp_none) == 0.0
+
+    def test_parse_retry_after(self):
+        """Test parse_retry_after parsing seconds and date formats."""
+        # Int string
+        r1 = httpx.Response(429, headers={"Retry-After": "12"})
+        assert parse_retry_after(r1) == 12
+
+        # Missing
+        r2 = httpx.Response(200)
+        assert parse_retry_after(r2) is None
+
+        # None input
+        assert parse_retry_after(None) is None
+
+    def test_worker_count_throttled_when_over_400_points(self):
+        """ThreadPoolExecutor max_workers is lowered to 4 when points exceed 400."""
+        # 405 points -> unique_keys len = 405 (>400)
+        large_points = [(40.0 + (i * 0.01), -80.0) for i in range(405)]
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            lats = request.url.params["latitude"].split(",")
+            mock_items = [self.fixture_data[0] for _ in lats]
+            return httpx.Response(200, json=mock_items if len(mock_items) > 1 else mock_items[0])
+
+        client = create_client(transport=httpx.MockTransport(handler), backoff_s=0.0)
+
+        with patch(
+            "clients.open_meteo.ThreadPoolExecutor", wraps=ThreadPoolExecutor
+        ) as mock_executor:
+            fetch_hourly(
+                points=large_points,
+                start_date=self.start_date,
+                end_date=self.end_date,
+                client=client,
+            )
+            mock_executor.assert_called_once_with(max_workers=4)
+
+    def test_worker_count_standard_when_under_400_points(self):
+        """ThreadPoolExecutor max_workers remains 8 when points are <= 400."""
+        points = [(40.0 + (i * 0.01), -80.0) for i in range(50)]
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            lats = request.url.params["latitude"].split(",")
+            mock_items = [self.fixture_data[0] for _ in lats]
+            return httpx.Response(200, json=mock_items if len(mock_items) > 1 else mock_items[0])
+
+        client = create_client(transport=httpx.MockTransport(handler), backoff_s=0.0)
+
+        with patch(
+            "clients.open_meteo.ThreadPoolExecutor", wraps=ThreadPoolExecutor
+        ) as mock_executor:
+            fetch_hourly(
+                points=points,
+                start_date=self.start_date,
+                end_date=self.end_date,
+                client=client,
+            )
+            mock_executor.assert_called_once_with(max_workers=8)
+
+    def test_on_chunk_success_callback_invoked(self):
+        """on_chunk_success is called for successful chunks even if another chunk fails."""
+        # 2 chunks of 50 = 100 points
+        pts = [(40.0 + (i * 0.01), -80.0) for i in range(100)]
+        chunk1_pts = pts[:50]
+
+        first_chunk_keys = [(round(p[0], 2), round(p[1], 2)) for p in chunk1_pts]
+        succeeded_chunks: list[dict[GridKey, HourlySeries]] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            lats = [float(x) for x in request.url.params["latitude"].split(",")]
+            # Chunk 1 (starts around 40.0) succeeds
+            if min(lats) < 40.5:
+                mock_items = [self.fixture_data[0] for _ in lats]
+                return httpx.Response(200, json=mock_items)
+            # Chunk 2 (starts at 40.5) fails with 429
+            return httpx.Response(429, headers={"Retry-After": "2"}, text="Too Many Requests")
+
+        client = create_client(transport=httpx.MockTransport(handler), backoff_s=0.0)
+
+        with pytest.raises(WeatherDataError) as exc_info:
+            fetch_hourly(
+                points=pts,
+                start_date=self.start_date,
+                end_date=self.end_date,
+                client=client,
+                on_chunk_success=lambda res: succeeded_chunks.append(res),
+            )
+
+        assert exc_info.value.status == 429
+        # Chunk 1 was successfully returned and passed to callback
+        assert len(succeeded_chunks) == 1
+        assert set(succeeded_chunks[0].keys()) == set(first_chunk_keys)

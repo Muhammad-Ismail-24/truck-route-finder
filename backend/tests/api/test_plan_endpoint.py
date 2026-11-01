@@ -379,6 +379,32 @@ class TestStandardizedErrorMappings:
             data = res.json()
             assert data["error"]["code"] == "RATE_LIMITED"
 
+    def test_upstream_weather_429_maps_to_rate_limited_with_retry_after(self, api_client):
+        """Weather upstream 429 maps to RATE_LIMITED with message and retry_after_s."""
+        err = WeatherDataError("Rate limit exceeded", status=429, retry_after_s=12)
+        with patch("api.views.plan_trip", side_effect=err):
+            res = api_client.post("/api/v1/plan", self.payload, format="json")
+            assert res.status_code == 429
+            data = res.json()
+            assert data["error"]["code"] == "RATE_LIMITED"
+            expected_msg = "The weather service is busy. Please try again in a minute."
+            assert data["error"]["message"] == expected_msg
+            assert data["error"]["details"] == {"retry_after_s": 12}
+            assert res.headers.get("Retry-After") == "12"
+
+    def test_upstream_weather_429_maps_to_rate_limited_without_retry_after(self, api_client):
+        """Weather upstream 429 without retry-after maps to RATE_LIMITED with empty details."""
+        err = WeatherDataError("Rate limit exceeded", status=429, retry_after_s=None)
+        with patch("api.views.plan_trip", side_effect=err):
+            res = api_client.post("/api/v1/plan", self.payload, format="json")
+            assert res.status_code == 429
+            data = res.json()
+            assert data["error"]["code"] == "RATE_LIMITED"
+            expected_msg = "The weather service is busy. Please try again in a minute."
+            assert data["error"]["message"] == expected_msg
+            assert data["error"]["details"] == {}
+            assert "Retry-After" not in res.headers
+
     def test_internal_error_maps_to_500_without_stack_trace(self, api_client):
         """Unexpected internal exceptions map to 500 INTERNAL_ERROR without leaking traces."""
         with patch("api.views.plan_trip", side_effect=RuntimeError("Secret database crash")):

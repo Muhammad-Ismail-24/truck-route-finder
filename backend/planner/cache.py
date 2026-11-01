@@ -11,6 +11,8 @@ Implements Section 12.5 and Section 19 of ARCHITECTURE.md:
 """
 
 import hashlib
+import inspect
+import threading
 from collections.abc import Callable, Sequence
 from datetime import date, datetime, timezone
 from typing import Any
@@ -216,8 +218,40 @@ def fetch_weather_with_cache(
     if missing:
         s_date = _format_date(start_date)
         e_date = _format_date(end_date)
-        fetched = fetcher(missing, s_date, e_date)
-        set_cached_weather(fetched, start_date, end_date)
-        found.update(fetched)
+        cache_lock = threading.Lock()
+
+        def on_chunk_success(chunk_dict: dict[tuple[float, float], HourlySeries]) -> None:
+            if chunk_dict:
+                with cache_lock:
+                    set_cached_weather(chunk_dict, start_date, end_date)
+                    found.update(chunk_dict)
+
+        accepts_cb = False
+        try:
+            sig = inspect.signature(fetcher)
+            accepts_cb = "on_chunk_success" in sig.parameters or any(
+                p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values()
+            )
+        except (ValueError, TypeError):
+            accepts_cb = False
+
+        if accepts_cb:
+            fetched = fetcher(missing, s_date, e_date, on_chunk_success=on_chunk_success)
+        else:
+            chunk_size = getattr(fetcher, "chunk_size", None)
+            if isinstance(chunk_size, int) and chunk_size > 0 and len(missing) > chunk_size:
+                fetched: dict[tuple[float, float], HourlySeries] = {}
+                for i in range(0, len(missing), chunk_size):
+                    chunk_keys = missing[i : i + chunk_size]
+                    part = fetcher(chunk_keys, s_date, e_date)
+                    if part:
+                        on_chunk_success(part)
+                        fetched.update(part)
+            else:
+                fetched = fetcher(missing, s_date, e_date)
+
+        if fetched:
+            set_cached_weather(fetched, start_date, end_date)
+            found.update(fetched)
 
     return found

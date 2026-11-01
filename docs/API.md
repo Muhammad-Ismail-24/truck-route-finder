@@ -273,5 +273,5 @@ All error responses adhere to a consistent JSON envelope across all endpoints:
 | `NO_ROUTE_FOUND` | `422 Unprocessable Entity` | HERE Routing API could not locate a viable commercial truck route between origin and destination. |
 | `UPSTREAM_ROUTING_ERROR` | `502 Bad Gateway` | HERE Routing API failed or returned a 5xx response after retry. |
 | `UPSTREAM_WEATHER_ERROR` | `502 Bad Gateway` | Open-Meteo weather forecast API failed or returned unparseable/null data after retry. |
-| `RATE_LIMITED` | `429 Too Many Requests` | Local API throttling limit (60 req/min) or upstream rate limit exceeded. |
+| `RATE_LIMITED` | `429 Too Many Requests` | Local API throttling limit (60 req/min) or upstream rate limit exceeded (e.g. Open-Meteo 429 after retry, returning message `"The weather service is busy. Please try again in a minute."` and `details.retry_after_s` / `Retry-After` header when available). |
 | `INTERNAL_ERROR` | `500 Internal Server Error` | Unexpected server fault. Error is logged internally with `request_id`; stack traces are never exposed. |

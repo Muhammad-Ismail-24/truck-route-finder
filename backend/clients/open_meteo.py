@@ -10,14 +10,14 @@ Implements Section 11.4 and Decisions D-03, D-04, D-13, D-21 of ARCHITECTURE.md:
   - GridKey = (round(lat, 2), round(lng, 2)).
 """
 
-from collections.abc import Sequence
-from concurrent.futures import ThreadPoolExecutor
+from collections.abc import Callable, Sequence
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime, timezone
 from typing import Any
 
 import httpx
 
-from clients.http import WeatherDataError, create_client
+from clients.http import WeatherDataError, create_client, parse_retry_after
 from domain.models import HourlySeries
 
 OPEN_METEO_FORECAST_URL: str = "https://api.open-meteo.com/v1/forecast"
@@ -95,9 +95,11 @@ def _fetch_chunk(
         raise WeatherDataError(f"HTTP transport error contacting Open-Meteo: {exc}") from exc
 
     if response.status_code != 200:
+        retry_after = parse_retry_after(response) if response.status_code == 429 else None
         raise WeatherDataError(
             f"Open-Meteo returned status {response.status_code}: {response.text}",
             status=response.status_code,
+            retry_after_s=retry_after,
         )
 
     try:
@@ -220,6 +222,7 @@ def fetch_hourly(
     start_date: str | date | datetime,
     end_date: str | date | datetime,
     client: httpx.Client | None = None,
+    on_chunk_success: Callable[[dict[GridKey, HourlySeries]], None] | None = None,
 ) -> dict[GridKey, HourlySeries]:
     """Fetch hourly weather forecast series for a collection of geographic points.
 
@@ -228,6 +231,7 @@ def fetch_hourly(
         start_date: Start date (inclusive, YYYY-MM-DD, date, or datetime).
         end_date: End date (inclusive, YYYY-MM-DD, date, or datetime).
         client: Optional shared httpx.Client (creates one with standard retry if omitted).
+        on_chunk_success: Optional callback invoked immediately with each chunk's results.
 
     Returns:
         Mapping from GridKey (round(lat, 2), round(lng, 2)) to HourlySeries.
@@ -261,22 +265,34 @@ def fetch_hourly(
     http_client = client if client is not None else create_client()
 
     results: dict[GridKey, HourlySeries] = {}
+    workers = 4 if len(unique_keys) > 400 else MAX_WORKERS
+    first_exc: BaseException | None = None
 
     try:
-        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-            futures = [
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            future_to_chunk = {
                 executor.submit(
                     _fetch_chunk,
                     chunk,
                     start_date_str,
                     end_date_str,
                     http_client,
-                )
+                ): chunk
                 for chunk in chunks
-            ]
-            for future in futures:
-                chunk_res = future.result()
-                results.update(chunk_res)
+            }
+            for future in as_completed(future_to_chunk):
+                try:
+                    chunk_res = future.result()
+                    results.update(chunk_res)
+                    if on_chunk_success is not None:
+                        on_chunk_success(chunk_res)
+                except Exception as exc:
+                    if first_exc is None:
+                        first_exc = exc
+                    for f in future_to_chunk:
+                        f.cancel()
+        if first_exc is not None:
+            raise first_exc
     finally:
         if should_close:
             http_client.close()
