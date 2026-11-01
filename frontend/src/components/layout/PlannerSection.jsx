@@ -31,6 +31,7 @@ import ResultsSkeleton from '../results/ResultsSkeleton';
 import ErrorPanel from '../results/ErrorPanel';
 import { useTripCore } from '../../state/TripProvider';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { useIsMounted } from '../../hooks/useIsMounted';
 import { getRecommendedRoute } from '../../state/selectors';
 
 const MapView = dynamic(() => import('../map/MapView'), {
@@ -47,6 +48,7 @@ const MapView = dynamic(() => import('../map/MapView'), {
 
 export default function PlannerSection() {
   const { state } = useTripCore();
+  const isMounted = useIsMounted();
   const isReducedMotion = useReducedMotion();
   const [headerVisible, setHeaderVisible] = useState(false);
   const [mapVisible, setMapVisible] = useState(false);
@@ -54,7 +56,7 @@ export default function PlannerSection() {
   const mapContainerRef = useRef(null);
 
   useEffect(() => {
-    if (isReducedMotion) return;
+    if (!isMounted || isReducedMotion) return;
 
     const headerEl = headerRef.current;
     let headerObs;
@@ -92,11 +94,11 @@ export default function PlannerSection() {
       if (headerObs) headerObs.disconnect();
       if (mapObs) mapObs.disconnect();
     };
-  }, [isReducedMotion]);
+  }, [isMounted, isReducedMotion]);
 
   const words = ['PLAN', 'YOUR', 'ROUTE'];
-  const isShown = isReducedMotion || headerVisible;
-  const isMapShown = isReducedMotion || mapVisible;
+  const isShown = (isMounted && isReducedMotion) || headerVisible;
+  const isMapShown = (isMounted && isReducedMotion) || mapVisible;
   const recommendedRoute = state.result ? getRecommendedRoute(state) : null;
 
   return (

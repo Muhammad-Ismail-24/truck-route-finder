@@ -16,6 +16,7 @@ import { getRouteColor } from '../../lib/risk/riskLevels';
 import RouteSummaryStats from './RouteSummaryStats';
 import RiskBreakdownBar from './RiskBreakdownBar';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 /**
  * @param {Object} props
@@ -25,7 +26,9 @@ import { useReducedMotion } from '../../hooks/useReducedMotion';
  * @param {number} [props.index=0] Stagger index
  */
 export default function RouteCard({ route, isSelected, onClick, index = 0 }) {
+  const isMounted = useIsMounted();
   const isReducedMotion = useReducedMotion();
+  const effectiveReducedMotion = isMounted && isReducedMotion;
   const routeColor = getRouteColor(route.id || route.label);
   const isRecommended = Boolean(route.is_recommended);
 
@@ -51,7 +54,7 @@ export default function RouteCard({ route, isSelected, onClick, index = 0 }) {
           : 'bg-surface-1 border-border-subtle hover:border-border-strong hover:-translate-y-[1px]'
       }`}
       style={{
-        animation: isReducedMotion
+        animation: effectiveReducedMotion
           ? 'none'
           : `route-card-stagger 400ms cubic-bezier(0.22, 1, 0.36, 1) ${staggerDelayMs}ms backwards`,
       }}

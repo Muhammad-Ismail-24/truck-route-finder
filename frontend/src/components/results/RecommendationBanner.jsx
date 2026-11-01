@@ -11,6 +11,7 @@
  */
 
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 /**
  * @param {Object} props
@@ -18,7 +19,9 @@ import { useReducedMotion } from '../../hooks/useReducedMotion';
  * @param {import('../../lib/types').Route} [props.recommendedRoute]
  */
 export default function RecommendationBanner({ recommendation, recommendedRoute }) {
+  const isMounted = useIsMounted();
   const isReducedMotion = useReducedMotion();
+  const effectiveReducedMotion = isMounted && isReducedMotion;
 
   if (!recommendation) return null;
 
@@ -79,10 +82,10 @@ export default function RecommendationBanner({ recommendation, recommendedRoute 
           className="absolute left-0 bottom-[-2px] h-[3px] bg-cobalt rounded-full origin-left"
           style={{
             width: '100%',
-            animation: isReducedMotion
+            animation: effectiveReducedMotion
               ? 'none'
               : 'underline-sweep 600ms cubic-bezier(0.22, 1, 0.36, 1) 200ms forwards',
-            transform: isReducedMotion ? 'scaleX(1)' : 'scaleX(0)',
+            transform: effectiveReducedMotion ? 'scaleX(1)' : 'scaleX(0)',
           }}
           aria-hidden="true"
         />

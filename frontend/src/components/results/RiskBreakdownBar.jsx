@@ -13,6 +13,7 @@
 import { RISK_LEVELS, ORDERED_RISK_KEYS } from '../../lib/risk/riskLevels';
 import { formatMilesValue } from '../../lib/format/distance';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 /**
  * @param {Object} props
@@ -21,7 +22,9 @@ import { useReducedMotion } from '../../hooks/useReducedMotion';
  * @param {string} [props.className='']
  */
 export default function RiskBreakdownBar({ milesByLevel = {}, totalMiles = 0, className = '' }) {
+  const isMounted = useIsMounted();
   const isReducedMotion = useReducedMotion();
+  const effectiveReducedMotion = isMounted && isReducedMotion;
 
   // Calculate segment breakdown
   const segments = ORDERED_RISK_KEYS.map((key, index) => {
@@ -65,7 +68,7 @@ export default function RiskBreakdownBar({ milesByLevel = {}, totalMiles = 0, cl
                 width: `${seg.percentage}%`,
                 backgroundColor: seg.meta.fill,
                 outline: seg.meta.outline || undefined,
-                animation: isReducedMotion
+                animation: effectiveReducedMotion
                   ? 'none'
                   : `risk-segment-grow 600ms cubic-bezier(0.22, 1, 0.36, 1) ${seg.index * 80}ms backwards`,
               }}

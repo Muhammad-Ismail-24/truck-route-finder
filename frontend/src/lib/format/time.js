@@ -81,6 +81,20 @@ export function getTimezoneOffsetLabel(date) {
 }
 
 /**
+ * Safely resolves the browser timezone offset and IANA timezone name.
+ * @param {Date} [date=new Date()]
+ * @returns {{ offset: string, tzName: string }}
+ */
+export function getBrowserTimezoneInfo(date = new Date()) {
+  const offset = getTimezoneOffsetLabel(date);
+  const tzName =
+    typeof Intl !== 'undefined' && typeof Intl.DateTimeFormat === 'function'
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone || ''
+      : '';
+  return { offset, tzName };
+}
+
+/**
  * Formats a UTC timestamp string in the browser's time zone with an offset label.
  * Example: "Nov 2, 8:00 AM (UTC-5)"
  *

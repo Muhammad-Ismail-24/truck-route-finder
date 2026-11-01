@@ -10,11 +10,14 @@
  */
 
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 export default function ResultsSkeleton() {
+  const isMounted = useIsMounted();
   const isReducedMotion = useReducedMotion();
+  const effectiveReducedMotion = isMounted && isReducedMotion;
 
-  const shimmerClass = isReducedMotion
+  const shimmerClass = effectiveReducedMotion
     ? 'bg-surface-2'
     : 'relative overflow-hidden bg-surface-2 before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.6s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/5 before:to-transparent';
 

@@ -15,6 +15,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { easeOutCubic, lerp, MOTION_SLOW_MS } from '../../lib/motion';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 /**
  * Calculates intermediate count-up value at normalized progress [0, 1].
@@ -47,13 +48,14 @@ export default function CountUp({
   as: Component = 'span',
   ...props
 }) {
+  const isMounted = useIsMounted();
   const isReducedMotion = useReducedMotion();
   const [displayValue, setDisplayValue] = useState(from);
   const rafIdRef = useRef(null);
   const startTimeRef = useRef(null);
 
   useEffect(() => {
-    if (isReducedMotion) return;
+    if (!isMounted || isReducedMotion) return;
 
     startTimeRef.current = performance.now();
 
@@ -78,9 +80,9 @@ export default function CountUp({
         cancelAnimationFrame(rafIdRef.current);
       }
     };
-  }, [value, from, duration, isReducedMotion]);
+  }, [value, from, duration, isReducedMotion, isMounted]);
 
-  const activeNumber = isReducedMotion ? value : displayValue;
+  const activeNumber = isMounted && isReducedMotion ? value : displayValue;
   const formattedText = formatter(activeNumber);
 
   return (

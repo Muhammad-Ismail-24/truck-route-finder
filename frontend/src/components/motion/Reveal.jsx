@@ -13,6 +13,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 /**
  * @param {Object} props
@@ -32,12 +33,13 @@ export default function Reveal({
   as: Component = 'div',
   ...props
 }) {
+  const isMounted = useIsMounted();
   const isReducedMotion = useReducedMotion();
   const [isVisible, setIsVisible] = useState(false);
   const domRef = useRef(null);
 
   useEffect(() => {
-    if (isReducedMotion) return;
+    if (!isMounted || isReducedMotion) return;
 
     const element = domRef.current;
     if (!element) return;
@@ -61,10 +63,10 @@ export default function Reveal({
     return () => {
       observer.disconnect();
     };
-  }, [isReducedMotion]);
+  }, [isMounted, isReducedMotion]);
 
-  // Reduced motion: show final state immediately without transitions
-  if (isReducedMotion) {
+  // Reduced motion: show final state immediately without transitions (after mount)
+  if (isMounted && isReducedMotion) {
     return (
       <Component ref={domRef} className={className} {...props}>
         {children}

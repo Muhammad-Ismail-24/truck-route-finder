@@ -13,7 +13,8 @@
  */
 
 import { useMemo } from 'react';
-import { getTimezoneOffsetLabel } from '../../lib/format/time';
+import { getBrowserTimezoneInfo } from '../../lib/format/time';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 /**
  * Validates departure window.
@@ -70,18 +71,19 @@ export default function DepartureInput({
   onChange,
   error: externalError,
 }) {
+  const isMounted = useIsMounted();
+
   const timezoneInfo = useMemo(() => {
-    const date = new Date();
-    const offset = getTimezoneOffsetLabel(date);
-    const tzName =
-      typeof Intl !== 'undefined'
-        ? Intl.DateTimeFormat().resolvedOptions().timeZone
-        : '';
-    return { offset, tzName };
-  }, []);
+    if (!isMounted) return null;
+    return getBrowserTimezoneInfo();
+  }, [isMounted]);
 
   const validation = useMemo(() => validateDepartureTime(value), [value]);
   const activeError = externalError || (!validation.isValid ? validation.error : null);
+
+  const timezoneLabel = timezoneInfo
+    ? `${timezoneInfo.offset} ${timezoneInfo.tzName ? `(${timezoneInfo.tzName})` : ''}`
+    : '';
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -92,8 +94,17 @@ export default function DepartureInput({
         >
           Departure Time
         </label>
-        <span className="font-mono text-[11px] text-text-muted tabular">
-          {timezoneInfo.offset} {timezoneInfo.tzName ? `(${timezoneInfo.tzName})` : ''}
+        <span
+          className="font-mono text-[11px] text-text-muted tabular inline-block min-h-[16px]"
+          aria-label={timezoneLabel ? `Timezone: ${timezoneLabel}` : undefined}
+        >
+          {isMounted && timezoneLabel ? (
+            timezoneLabel
+          ) : (
+            <span className="invisible select-none" aria-hidden="true">
+              UTC+00:00 (Timezone)
+            </span>
+          )}
         </span>
       </div>
 
@@ -102,6 +113,7 @@ export default function DepartureInput({
         type="datetime-local"
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
+        suppressHydrationWarning
         className={`w-full bg-surface-2 border rounded-xl px-4 py-3 min-h-[44px] text-sm font-mono text-white transition-all duration-150 focus:outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt focus:ring-offset-2 focus:ring-offset-ink tabular [color-scheme:dark] ${
           activeError
             ? 'border-red-500/70 focus:border-red-500 focus:ring-red-500'

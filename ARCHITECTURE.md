@@ -337,7 +337,8 @@ spotter-truck-routing/                      ← repo root
         │   ├── useMapInstance.js
         │   ├── useHeatmapFrame.js
         │   ├── useHeroScroll.js                    ← scroll → video time, strip/letters transforms
-        │   └── useReducedMotion.js
+        │   ├── useReducedMotion.js
+        │   └── useIsMounted.js
         ├── state/            (TripProvider, tripReducer, selectors)
         └── lib/
             ├── api/          (client, plan, geocode, ApiError)

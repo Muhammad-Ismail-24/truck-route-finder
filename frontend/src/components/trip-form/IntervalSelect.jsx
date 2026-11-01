@@ -10,6 +10,7 @@
  */
 
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import { useIsMounted } from '../../hooks/useIsMounted';
 
 const INTERVAL_OPTIONS = [
   { value: 10, label: '10 mi', desc: 'Detailed' },
@@ -23,7 +24,9 @@ const INTERVAL_OPTIONS = [
  * @param {(interval: number) => void} props.onChange
  */
 export default function IntervalSelect({ value = 25, onChange }) {
+  const isMounted = useIsMounted();
   const isReducedMotion = useReducedMotion();
+  const effectiveReducedMotion = isMounted && isReducedMotion;
   const activeIndex = INTERVAL_OPTIONS.findIndex((opt) => opt.value === Number(value));
   const safeIndex = activeIndex >= 0 ? activeIndex : 1; // default to 25 mi
 
@@ -53,7 +56,7 @@ export default function IntervalSelect({ value = 25, onChange }) {
             width: 'calc((100% - 8px) / 3)',
             transform: `translateX(${safeIndex * 100}%)`,
             transitionProperty: 'transform',
-            transitionDuration: isReducedMotion ? '0ms' : 'var(--motion-base, 280ms)',
+            transitionDuration: effectiveReducedMotion ? '0ms' : 'var(--motion-base, 280ms)',
             transitionTimingFunction: 'var(--motion-ease, cubic-bezier(0.22, 1, 0.36, 1))',
           }}
         />
