@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateLoadWeight } from './LoadWeightInput';
+import { validateLoadWeight, getLoadRuleHelperText } from './LoadWeightInput';
 import { validateDepartureTime } from './DepartureInput';
 import { dateTimeLocalToIso, getDefaultDepartureDateTimeLocal } from '../../lib/format/time';
 
@@ -28,21 +28,42 @@ describe('Trip Form Validation (Section 15.3, 17.3, D-01, D-09, D-10)', () => {
       expect(validateLoadWeight(80000).isValid).toBe(true);
     });
 
-    it('identifies correct wind risk rule tiers per Section 9.2', () => {
-      // Standard rule: <= 30k
-      const light = validateLoadWeight(25000);
-      expect(light.isValid).toBe(true);
-      expect(light.tierMessage).toContain('standard wind limits');
+    it('displays dynamic load rule helper text at 30000, 30001, 40000 and 40001 lb boundaries (Section 9.3, D-09)', () => {
+      // up to 30,000 lb: exactly 30,000 does NOT trigger stricter rule
+      const at30k = validateLoadWeight(30000);
+      expect(at30k.isValid).toBe(true);
+      expect(at30k.tierMessage).toBe('Wind of 55 mph or more is No Travel.');
+      expect(getLoadRuleHelperText(30000)).toBe('Wind of 55 mph or more is No Travel.');
 
-      // 30k-40k medium load rule
-      const medium = validateLoadWeight(35000);
-      expect(medium.isValid).toBe(true);
-      expect(medium.tierMessage).toContain('30k–40k lb medium load rule');
+      // above 30,000 up to 40,000 lb: 30,001 triggers medium load rule
+      const over30k = validateLoadWeight(30001);
+      expect(over30k.isValid).toBe(true);
+      expect(over30k.tierMessage).toBe(
+        'Wind 45-54 mph is No Travel for this load. 55 mph or more is No Travel.'
+      );
+      expect(getLoadRuleHelperText(30001)).toBe(
+        'Wind 45-54 mph is No Travel for this load. 55 mph or more is No Travel.'
+      );
 
-      // > 40k heavy load rule
-      const heavy = validateLoadWeight(65000);
-      expect(heavy.isValid).toBe(true);
-      expect(heavy.tierMessage).toContain('> 40k lb heavy load rule');
+      // exactly 40,000 lb does NOT trigger heavy load rule
+      const at40k = validateLoadWeight(40000);
+      expect(at40k.isValid).toBe(true);
+      expect(at40k.tierMessage).toBe(
+        'Wind 45-54 mph is No Travel for this load. 55 mph or more is No Travel.'
+      );
+      expect(getLoadRuleHelperText(40000)).toBe(
+        'Wind 45-54 mph is No Travel for this load. 55 mph or more is No Travel.'
+      );
+
+      // above 40,000 lb: 40,001 triggers heavy load rule
+      const over40k = validateLoadWeight(40001);
+      expect(over40k.isValid).toBe(true);
+      expect(over40k.tierMessage).toBe(
+        'Wind 45-54 mph is No Travel; wind 35-44 mph is Severe for this load. 55 mph or more is No Travel.'
+      );
+      expect(getLoadRuleHelperText(40001)).toBe(
+        'Wind 45-54 mph is No Travel; wind 35-44 mph is Severe for this load. 55 mph or more is No Travel.'
+      );
     });
   });
 

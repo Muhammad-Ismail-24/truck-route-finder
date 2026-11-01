@@ -12,9 +12,41 @@
 
 import { useState } from 'react';
 import { parseWeight } from '../../lib/format/weight';
+import {
+  MIN_LOAD_LB,
+  MAX_LOAD_LB,
+  LOAD_RULE_30K_LB,
+  LOAD_RULE_40K_LB,
+  WIND_NO_TRAVEL_THRESHOLD_MPH,
+  WIND_SEVERE_MIN_MPH,
+  WIND_SEVERE_MAX_MPH,
+  WIND_HIGH_MIN_MPH,
+  WIND_HIGH_MAX_MPH,
+} from '../../lib/constants';
 
 /**
- * Validates weight boundaries.
+ * Computes dynamic load rule helper text per Section 9.3 and Decision D-09.
+ *
+ * Rules:
+ *   - up to 30,000 lb: "Wind of 55 mph or more is No Travel."
+ *   - above 30,000 up to 40,000 lb: "Wind 45-54 mph is No Travel for this load. 55 mph or more is No Travel."
+ *   - above 40,000 lb: "Wind 45-54 mph is No Travel; wind 35-44 mph is Severe for this load. 55 mph or more is No Travel."
+ *
+ * @param {number} weight
+ * @returns {string}
+ */
+export function getLoadRuleHelperText(weight) {
+  if (weight > LOAD_RULE_40K_LB) {
+    return `Wind ${WIND_SEVERE_MIN_MPH}-${WIND_SEVERE_MAX_MPH} mph is No Travel; wind ${WIND_HIGH_MIN_MPH}-${WIND_HIGH_MAX_MPH} mph is Severe for this load. ${WIND_NO_TRAVEL_THRESHOLD_MPH} mph or more is No Travel.`;
+  }
+  if (weight > LOAD_RULE_30K_LB) {
+    return `Wind ${WIND_SEVERE_MIN_MPH}-${WIND_SEVERE_MAX_MPH} mph is No Travel for this load. ${WIND_NO_TRAVEL_THRESHOLD_MPH} mph or more is No Travel.`;
+  }
+  return `Wind of ${WIND_NO_TRAVEL_THRESHOLD_MPH} mph or more is No Travel.`;
+}
+
+/**
+ * Validates weight boundaries and generates dynamic load-rule tier text (D-09).
  * @param {number} weight
  * @returns {{ isValid: boolean, error?: string, tierMessage?: string }}
  */
@@ -23,22 +55,18 @@ export function validateLoadWeight(weight) {
     return { isValid: false, error: 'Load weight is required' };
   }
 
-  if (weight < 1) {
-    return { isValid: false, error: 'Weight must be at least 1 lb' };
+  if (weight < MIN_LOAD_LB) {
+    return { isValid: false, error: `Weight must be at least ${MIN_LOAD_LB} lb` };
   }
 
-  if (weight > 80000) {
-    return { isValid: false, error: 'Weight cannot exceed 80,000 lb (gross federal limit)' };
+  if (weight > MAX_LOAD_LB) {
+    return {
+      isValid: false,
+      error: `Weight cannot exceed ${MAX_LOAD_LB.toLocaleString('en-US')} lb (gross federal limit)`,
+    };
   }
 
-  let tierMessage = '≤ 30k lb: standard wind limits (40 mph High, 50 mph Severe)';
-  if (weight > 40000) {
-    tierMessage = '> 40k lb heavy load rule: High risk triggers at 25 mph';
-  } else if (weight > 30000) {
-    tierMessage = '30k–40k lb medium load rule: High risk triggers at 35 mph';
-  }
-
-  return { isValid: true, tierMessage };
+  return { isValid: true, tierMessage: getLoadRuleHelperText(weight) };
 }
 
 /**
@@ -124,27 +152,29 @@ export default function LoadWeightInput({
         </span>
       </div>
 
-      {/* Validation error or risk rule tier helper */}
-      {activeError ? (
-        <p className="text-xs text-red-400 font-body flex items-center gap-1 mt-0.5">
-          <svg
-            className="w-3.5 h-3.5 flex-shrink-0"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="8" x2="12" y2="12" />
-            <line x1="12" y1="16" x2="12.01" y2="16" />
-          </svg>
-          <span>{activeError}</span>
-        </p>
-      ) : (
-        <p className="text-[11px] text-text-muted font-body mt-0.5">
-          {validation.tierMessage}
-        </p>
-      )}
+      {/* Validation error or risk rule tier helper (reserved 2 lines with mono tabular numerals) */}
+      <div className="min-h-[2.5rem] mt-0.5">
+        {activeError ? (
+          <p className="text-xs text-red-400 font-body flex items-center gap-1">
+            <svg
+              className="w-3.5 h-3.5 flex-shrink-0"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <span>{activeError}</span>
+          </p>
+        ) : (
+          <p className="text-[11px] text-text-muted font-mono tabular leading-normal">
+            {validation.tierMessage}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

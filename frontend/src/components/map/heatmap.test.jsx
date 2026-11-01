@@ -167,6 +167,17 @@ describe('MapLegend Component', () => {
     const html = renderToString(<MapLegend metric="WIND" />);
     expect(html).toContain('Sustained Wind Speed');
     expect(html).toContain('55+ mph');
+    expect(html).toContain('55+ mph No Travel');
+  });
+
+  it('renders exact threshold text for Rain and Snow per Section 9', () => {
+    const rainHtml = renderToString(<MapLegend metric="RAIN" />);
+    expect(rainHtml).toContain('Precipitation Rate');
+    expect(rainHtml).toContain('above 1.0 in/hr No Travel');
+
+    const snowHtml = renderToString(<MapLegend metric="SNOW" />);
+    expect(snowHtml).toContain('Snowfall Rate');
+    expect(snowHtml).toContain('above 3.0 in/hr No Travel');
   });
 });
 

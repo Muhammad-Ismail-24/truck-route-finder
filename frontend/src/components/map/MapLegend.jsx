@@ -25,17 +25,17 @@ export default function MapLegend({ metric = 'RISK', className = '' }) {
     WIND: {
       title: 'Sustained Wind Speed',
       ticks: ['0 mph', '25', '35', '45', '55+ mph'],
-      note: 'Threshold: 55 mph No Travel (any load)',
+      note: '55+ mph No Travel',
     },
     RAIN: {
       title: 'Precipitation Rate',
       ticks: ['0 in/hr', '0.1', '0.25', '0.5', '1.0+ in/hr'],
-      note: 'Threshold: ≥ 1.0 in/hr No Travel',
+      note: 'above 1.0 in/hr No Travel',
     },
     SNOW: {
       title: 'Snowfall Rate',
-      ticks: ['0 in/hr', '0.1', '0.5', '1.5', '3.0+ in/hr'],
-      note: 'Threshold: ≥ 3.0 in/hr No Travel',
+      ticks: ['0 in/hr', '0.5', '1.0', '2.0', '3.0+ in/hr'],
+      note: 'above 3.0 in/hr No Travel',
     },
   };
 

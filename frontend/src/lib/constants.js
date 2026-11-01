@@ -6,6 +6,16 @@ export const DEFAULT_INTERVAL_MILES = 25;
 export const MIN_LOAD_LB = 1;
 export const MAX_LOAD_LB = 80000;
 
+// Section 9.2 & 9.3 Base wind thresholds and load rule boundary constants
+export const LOAD_RULE_30K_LB = 30000;
+export const LOAD_RULE_40K_LB = 40000;
+
+export const WIND_NO_TRAVEL_THRESHOLD_MPH = 55;
+export const WIND_SEVERE_MIN_MPH = 45;
+export const WIND_SEVERE_MAX_MPH = 54;
+export const WIND_HIGH_MIN_MPH = 35;
+export const WIND_HIGH_MAX_MPH = 44;
+
 export const DEFAULT_DELAY_BUFFER = 1.10;
 export const DEFAULT_TRUCK_TARE_LB = 32000;
 
