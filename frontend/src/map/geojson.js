@@ -6,7 +6,14 @@
  * ARCHITECTURE.md Section 17.5.
  */
 
-import { getRouteColor, HEATMAP_THRESHOLDS } from '../lib/risk/riskLevels';
+import { getRouteColor } from '../lib/risk/riskLevels';
+import {
+  HEATMAP_THRESHOLDS,
+  calculateRiskIntensity,
+  calculatePerceptualIntensity,
+} from './intensity';
+
+export { HEATMAP_THRESHOLDS };
 
 export const EMPTY_GEOJSON = Object.freeze({
   type: 'FeatureCollection',
@@ -151,23 +158,23 @@ export function buildHeatmapGeoJSON(heatmapData, hour = 0, metric = 'RISK') {
     switch (metricUpper) {
       case 'WIND': {
         const val = point.wind_mph?.[clampedHour] ?? 0;
-        intensity = Math.max(0, Math.min(1, val / HEATMAP_THRESHOLDS.WIND_MPH));
+        intensity = calculatePerceptualIntensity(val, HEATMAP_THRESHOLDS.WIND_MPH);
         break;
       }
       case 'RAIN': {
         const val = point.rain_in_hr?.[clampedHour] ?? 0;
-        intensity = Math.max(0, Math.min(1, val / HEATMAP_THRESHOLDS.RAIN_IN_HR));
+        intensity = calculatePerceptualIntensity(val, HEATMAP_THRESHOLDS.RAIN_IN_HR);
         break;
       }
       case 'SNOW': {
         const val = point.snow_in_hr?.[clampedHour] ?? 0;
-        intensity = Math.max(0, Math.min(1, val / HEATMAP_THRESHOLDS.SNOW_IN_HR));
+        intensity = calculatePerceptualIntensity(val, HEATMAP_THRESHOLDS.SNOW_IN_HR);
         break;
       }
       case 'RISK':
       default: {
         const r = point.risk?.[clampedHour] ?? 0;
-        intensity = Math.max(0, Math.min(1, r / HEATMAP_THRESHOLDS.RISK));
+        intensity = calculateRiskIntensity(r);
         break;
       }
     }

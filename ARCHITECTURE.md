@@ -669,9 +669,9 @@ Output:
 - Output per point: `risk: [int 0..4]` (= `RiskLevel − 1`), `wind_mph: [...]`, `rain_in_hr: [...]`, `snow_in_hr: [...]` (each 49 values, rounded to 1/2/2 decimals).
 - If an hour is missing from the series (beyond forecast), repeat the last available value and flag `truncated: true` on the heatmap object.
 
-Frontend intensity (`heatmapLayer.js`):
-- RISK mode: `intensity = risk / 4` (LOW=0 is invisible by design).
-- Metric modes: `intensity = clamp(value / NO_TRAVEL_THRESHOLD, 0, 1)` using wind 55, rain 1.0, snow 3.0.
+Frontend intensity (`intensity.js`, `geojson.js`, `heatmapLayer.js`) — D-42:
+- RISK mode: `intensity = 0.2 + 0.8 * (risk / 4)`. Maps LOW (`risk = 0`) to a visible positive floor of `0.20` with a calm green/teal baseline (`#2E9E5B`), scaling MODERATE (`0.40`), HIGH (`0.60`), SEVERE (`0.80`), and NO_TRAVEL (`1.00`) distinctly. When all corridor points at hour `h` are LOW, the controls legend displays `"All clear: Low risk along the corridor"`.
+- Metric modes: perceptual square-root scale `intensity = sqrt(clamp(value / NO_TRAVEL_THRESHOLD, 0, 1))` using thresholds: wind 55 mph, rain 1.0 in/hr, snow 3.0 in/hr. Zero precipitation or wind evaluates to 0 (transparent). When a metric has zero values across all corridor points at hour `h`, an inline message displays in the controls (e.g. `"No rain forecast along the corridor at this hour"`).
 
 ---
 
@@ -869,7 +869,7 @@ Actions: `FORM_CHANGED`, `PLAN_REQUESTED`, `PLAN_SUCCEEDED`, `PLAN_FAILED`, `ROU
   - Checkpoints: circle color via `match` on `level` (palette in `riskLevels.js`); non-selected routes' checkpoints are hidden below zoom 7 and shown small otherwise; selected route's checkpoints always shown.
   - Hover → pointer cursor; click → select route/checkpoint and open `CheckpointPopup` (mile, ETA, weather incl. gusts, risk with driver and load rule text).
 - Fit bounds to all routes after each successful plan (`bounds.js`), with padding for the sidebar (`duration: 900`, easing from `--motion-ease`).
-- Heatmap layer: `heatmap-weight` from `intensity`, radius interpolated by zoom, color ramp transparent → yellow → orange → red → dark red, opacity 0.75, placed **below** route lines.
+- Heatmap layer: `heatmap-weight` from `intensity`, radius interpolated by zoom (2: 18px, 4: 26px, 7: 38px, 10: 52px, 14: 80px), color ramp transparent → calm green/teal (LOW baseline `#2E9E5B`) → yellow (`#F2C94C`) → orange (`#F2994A`) → red (`#EB5757`) → dark red (`#6B1D1D`), opacity 0.80, placed **below** route lines.
 - **Animations (Section 25.5):**
   - Route draw-in: on a new plan only, reveal each route polyline progressively over ~900 ms (ease-out, staggered 120 ms, `map/routeAnimation.js`). Skip when reduced motion.
   - Selected checkpoint: DOM marker with a CSS pulsing ring (transform scale + opacity loop) at the selected checkpoint; removed when deselected.

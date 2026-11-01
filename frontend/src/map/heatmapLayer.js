@@ -22,7 +22,7 @@ import { RISK_LEVELS } from '../lib/risk/riskLevels';
 
 export const HEATMAP_SOURCE_ID = 'heatmap-src';
 export const HEATMAP_LAYER_ID = 'heatmap-layer';
-export const HEATMAP_DEFAULT_OPACITY = 0.75;
+export const HEATMAP_DEFAULT_OPACITY = 0.80;
 
 /**
  * Adds the heatmap GeoJSON source and WebGL heatmap layer to the map.
@@ -55,35 +55,42 @@ export function addHeatmapLayer(
           'heatmap-weight': ['get', 'intensity'],
 
           // Heatmap intensity multiplier across zoom levels
+          // Ensures visible baseline at continent scale (zoom ~4) and crisp local density at city scale (zoom ~9)
           'heatmap-intensity': [
             'interpolate',
             ['linear'],
             ['zoom'],
-            0, 1,
-            9, 3,
+            0, 1.0,
+            4, 1.5,
+            9, 2.8,
           ],
 
-          // Color ramp: transparent -> yellow -> orange -> red -> dark red
+          // Color ramp: transparent -> calm green/teal (LOW baseline) -> yellow -> orange -> red -> dark red
           'heatmap-color': [
             'interpolate',
             ['linear'],
             ['heatmap-density'],
             0, 'rgba(0, 0, 0, 0)',
-            0.2, RISK_LEVELS.MODERATE.fill,
-            0.5, RISK_LEVELS.HIGH.fill,
-            0.8, RISK_LEVELS.SEVERE.fill,
-            1.0, RISK_LEVELS.NO_TRAVEL.fill,
+            0.15, 'rgba(46, 158, 91, 0.45)',
+            0.30, RISK_LEVELS.LOW.fill,
+            0.50, RISK_LEVELS.MODERATE.fill,
+            0.70, RISK_LEVELS.HIGH.fill,
+            0.85, RISK_LEVELS.SEVERE.fill,
+            1.00, RISK_LEVELS.NO_TRAVEL.fill,
           ],
 
           // Interpolated heatmap radius by zoom level
+          // At continent scale (zoom ~4), radius ~26px blends 25-mile checkpoints into a smooth corridor swath.
+          // At city scale (zoom ~9), radius ~50px forms distinct local hotspot glows.
           'heatmap-radius': [
             'interpolate',
             ['linear'],
             ['zoom'],
-            3, 16,
-            6, 28,
-            10, 48,
-            14, 75,
+            2, 18,
+            4, 26,
+            7, 38,
+            10, 52,
+            14, 80,
           ],
 
           // Transition only applied to opacity for show/hide toggling

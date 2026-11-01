@@ -11,16 +11,17 @@
 /**
  * @param {Object} props
  * @param {'RISK' | 'WIND' | 'RAIN' | 'SNOW'} [props.metric='RISK']
+ * @param {string} [props.statusMessage] Optional corridor status message (e.g. 'All clear: Low risk along the corridor')
  * @param {string} [props.className='']
  */
-export default function MapLegend({ metric = 'RISK', className = '' }) {
+export default function MapLegend({ metric = 'RISK', statusMessage = '', className = '' }) {
   const metricUpper = (metric || 'RISK').toUpperCase();
 
   const LEGEND_CONFIGS = {
     RISK: {
       title: 'Risk Level (Load-Aware)',
       ticks: ['Low', 'Mod', 'High', 'Severe', 'No Travel'],
-      note: 'Low risk is transparent by design',
+      note: 'Green = Low risk baseline',
     },
     WIND: {
       title: 'Sustained Wind Speed',
@@ -46,7 +47,13 @@ export default function MapLegend({ metric = 'RISK', className = '' }) {
       {/* Legend Title and Note inline */}
       <div className="flex items-center justify-between text-[10px] font-body text-text-muted leading-tight">
         <span className="font-medium text-white truncate">{config.title}</span>
-        <span className="text-[10px] text-text-faint flex-shrink-0 ml-2">{config.note}</span>
+        <span
+          className={`text-[10px] flex-shrink-0 ml-2 ${
+            statusMessage ? 'text-risk-low font-medium' : 'text-text-faint'
+          }`}
+        >
+          {statusMessage || config.note}
+        </span>
       </div>
 
       {/* Gradient Color Ramp */}
@@ -54,7 +61,7 @@ export default function MapLegend({ metric = 'RISK', className = '' }) {
         className="w-full h-1.5 rounded-full border border-border-subtle"
         style={{
           background:
-            'linear-gradient(to right, rgba(0,0,0,0) 0%, var(--color-risk-moderate) 25%, var(--color-risk-high) 50%, var(--color-risk-severe) 75%, var(--color-risk-no-travel) 100%)',
+            'linear-gradient(to right, var(--color-risk-low) 0%, var(--color-risk-moderate) 25%, var(--color-risk-high) 50%, var(--color-risk-severe) 75%, var(--color-risk-no-travel) 100%)',
         }}
         aria-hidden="true"
       />

@@ -17,7 +17,7 @@
  * ARCHITECTURE.md Section 14, 17.5, 25.5, Decisions D-20, D-28.
  */
 
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useMemo } from 'react';
 import Slider from '../ui/Slider';
 import MapLegend from './MapLegend';
 import { useHeatmapFrame } from '../../hooks/useHeatmapFrame';
@@ -114,6 +114,56 @@ export default function HeatmapControls({
     }
     dispatch({ type: 'HEATMAP_VISIBILITY_SET', payload: nextVisible });
   };
+
+  // Determine corridor status for current hour & metric (Section 14 & D-42)
+  const corridorStatus = useMemo(() => {
+    if (!heatmapData?.points || heatmapData.points.length === 0) return null;
+    const clampedHour = Math.max(0, Math.min(48, Math.round(hour)));
+    const pts = heatmapData.points;
+    const metricUpper = (metric || 'RISK').toUpperCase();
+
+    if (metricUpper === 'RISK') {
+      const allLow = pts.every((p) => (p.risk?.[clampedHour] ?? 0) === 0);
+      return allLow
+        ? {
+            isAllClear: true,
+            message: 'All clear: Low risk along the corridor',
+          }
+        : null;
+    }
+
+    if (metricUpper === 'RAIN') {
+      const allZero = pts.every((p) => (p.rain_in_hr?.[clampedHour] ?? 0) <= 0);
+      return allZero
+        ? {
+            isEmpty: true,
+            message: 'No rain forecast along the corridor at this hour',
+          }
+        : null;
+    }
+
+    if (metricUpper === 'SNOW') {
+      const allZero = pts.every((p) => (p.snow_in_hr?.[clampedHour] ?? 0) <= 0);
+      return allZero
+        ? {
+            isEmpty: true,
+            message: 'No snow forecast along the corridor at this hour',
+          }
+        : null;
+    }
+
+    if (metricUpper === 'WIND') {
+      const allZero = pts.every((p) => (p.wind_mph?.[clampedHour] ?? 0) <= 0);
+      return allZero
+        ? {
+            isEmpty: true,
+            message: 'No wind forecast along the corridor at this hour',
+          }
+        : null;
+    }
+
+    return null;
+  }, [heatmapData, hour, metric]);
 
   if (!heatmapData) return null;
 
@@ -213,9 +263,17 @@ export default function HeatmapControls({
             <span>+48h</span>
           </div>
 
+          {/* Corridor Empty State Indicator */}
+          {corridorStatus?.isEmpty && (
+            <div className="flex items-center justify-center gap-1.5 py-0.5 px-2 rounded bg-surface-2/60 border border-border-subtle/30 text-[10px] font-body text-text-muted select-none">
+              <span className="w-1.5 h-1.5 rounded-full bg-text-faint flex-shrink-0" aria-hidden="true" />
+              <span>{corridorStatus.message}</span>
+            </div>
+          )}
+
           {/* Intensity Legend */}
           <div className="pt-1.5 border-t border-border-subtle/50">
-            <MapLegend metric={metric} />
+            <MapLegend metric={metric} statusMessage={corridorStatus?.message} />
           </div>
         </div>
       )}
