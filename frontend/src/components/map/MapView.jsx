@@ -364,9 +364,14 @@ export default memo(function MapView() {
     <div
       role="region"
       aria-label="Route and forecast map"
-      className="w-full h-full relative rounded-[24px] overflow-hidden"
+      className="w-full flex-1 min-h-[350px] lg:min-h-0 relative rounded-[24px] overflow-hidden flex flex-col"
     >
-      <div ref={containerRef} className="w-full h-full" tabIndex={0} aria-label="Interactive map canvas" />
+      <div
+        ref={containerRef}
+        className="w-full flex-1 min-h-[350px] lg:min-h-0"
+        tabIndex={0}
+        aria-label="Interactive map canvas"
+      />
       {mapError && (
         <div
           role="alert"

@@ -46,11 +46,20 @@ export function useMapInstance({ containerRef, initialStyleUrl }) {
         style: styleUrl,
         center: [-98.5795, 39.8283], // Center of contiguous US
         zoom: 3.5,
+        cooperativeGestures: true,
         attributionControl: {
-          compact: false,
+          compact: true,
         },
       });
       mapRef.current = instance;
+
+      instance.once('load', () => {
+        try {
+          instance.resize();
+        } catch {
+          // Ignore
+        }
+      });
     } catch (err) {
       if (!hasLoggedErrorRef.current) {
         hasLoggedErrorRef.current = true;

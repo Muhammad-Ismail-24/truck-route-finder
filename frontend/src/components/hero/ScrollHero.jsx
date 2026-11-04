@@ -21,7 +21,7 @@ import {
   GIANT_LETTERS,
   BOTTOM_PILL_TEXT,
   POSTER_URL,
-  VIDEO_1080P_URL,
+  VIDEO_720P_URL,
 } from './heroConfig';
 import './hero.css';
 
@@ -48,11 +48,11 @@ export default function ScrollHero() {
       <div ref={sceneRef} className="hero-scene">
         <video
           ref={videoRef}
-          src={VIDEO_1080P_URL}
+          src={VIDEO_720P_URL}
           poster={POSTER_URL}
           muted
           playsInline
-          preload="metadata"
+          preload="auto"
           disablePictureInPicture
           aria-hidden="true"
           tabIndex={-1}
