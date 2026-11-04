@@ -171,7 +171,7 @@ export default function HeatmapControls({
     <div
       role="region"
       aria-label="Heatmap forecast controls"
-      className="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto sm:w-[360px] z-10 bg-surface-1 border border-border-subtle rounded-2xl p-3 sm:p-3.5 shadow-2xl space-y-2 text-white font-body select-none max-h-[85%] sm:max-h-[40%] overflow-y-auto"
+      className="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-auto sm:w-[360px] z-10 bg-surface-1 border border-border-subtle rounded-2xl p-3 sm:p-3.5 shadow-2xl space-y-2 text-white font-body select-none max-h-[40%] overflow-y-auto"
     >
       {/* Top Bar: Visibility Toggle & Metric Segmented Control */}
       <div className="flex flex-wrap items-center justify-between gap-1.5">

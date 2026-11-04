@@ -123,11 +123,6 @@ export default function useHeroScroll({
         const currentTime = video.currentTime;
         video.src = expectedSrc;
         video.currentTime = currentTime;
-        try {
-          video.load();
-        } catch {
-          // Ignore
-        }
       }
     };
 

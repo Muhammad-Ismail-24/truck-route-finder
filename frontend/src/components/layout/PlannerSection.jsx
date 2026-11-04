@@ -37,7 +37,7 @@ import { getRecommendedRoute } from '../../state/selectors';
 const MapView = dynamic(() => import('../map/MapView'), {
   ssr: false,
   loading: () => (
-    <div className="w-full flex-1 min-h-[350px] lg:min-h-0 flex flex-col items-center justify-center bg-surface-1 text-text-muted gap-3 p-6 select-none">
+    <div className="w-full h-full flex flex-col items-center justify-center bg-surface-1 text-text-muted gap-3 p-6 select-none">
       <div className="w-8 h-8 rounded-full border-2 border-cobalt border-t-transparent animate-spin" />
       <span className="font-body text-xs uppercase tracking-wider text-text-faint">
         Loading Map Engine…
@@ -269,12 +269,12 @@ export default function PlannerSection() {
           >
             <div
               ref={mapContainerRef}
-              className="bg-surface-1 border border-border-subtle rounded-[24px] w-full flex-1 min-h-[350px] lg:min-h-0 relative overflow-hidden shadow-2xl flex flex-col"
+              className="bg-surface-1 border border-border-subtle rounded-[24px] w-full h-full relative overflow-hidden shadow-2xl flex flex-col"
             >
               {isMapShown ? (
                 <MapView />
               ) : (
-                <div className="w-full flex-1 min-h-[350px] lg:min-h-0 flex flex-col items-center justify-center bg-surface-1 text-text-muted gap-3 p-6 select-none">
+                <div className="w-full h-full flex flex-col items-center justify-center bg-surface-1 text-text-muted gap-3 p-6 select-none">
                   <div className="w-8 h-8 rounded-full border-2 border-cobalt border-t-transparent animate-spin" />
                   <span className="font-body text-xs uppercase tracking-wider text-text-faint">
                     Loading Map Engine…

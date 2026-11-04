@@ -155,7 +155,7 @@ export default function LocationInput({
           aria-activedescendant={
             activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined
           }
-          className={`w-full bg-surface-2 border rounded-xl px-4 py-3 pr-12 text-base sm:text-sm font-body text-white placeholder-text-faint transition-all duration-150 focus:outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt focus:ring-offset-2 focus:ring-offset-ink min-h-[44px] ${
+          className={`w-full bg-surface-2 border rounded-xl px-4 py-3 pr-12 text-sm font-body text-white placeholder-text-faint transition-all duration-150 focus:outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt focus:ring-offset-2 focus:ring-offset-ink min-h-[44px] ${
             error
               ? 'border-red-500/70 focus:border-red-500 focus:ring-red-500'
               : isSelected

@@ -114,7 +114,7 @@ export default function DepartureInput({
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
         suppressHydrationWarning
-        className={`w-full bg-surface-2 border rounded-xl px-4 py-3 min-h-[44px] text-base sm:text-sm font-mono text-white transition-all duration-150 focus:outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt focus:ring-offset-2 focus:ring-offset-ink tabular [color-scheme:dark] ${
+        className={`w-full bg-surface-2 border rounded-xl px-4 py-3 min-h-[44px] text-sm font-mono text-white transition-all duration-150 focus:outline-none focus:border-cobalt focus:ring-2 focus:ring-cobalt focus:ring-offset-2 focus:ring-offset-ink tabular [color-scheme:dark] ${
           activeError
             ? 'border-red-500/70 focus:border-red-500 focus:ring-red-500'
             : 'border-border-subtle'

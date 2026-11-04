@@ -17,7 +17,6 @@
   background-color: var(--color-white, #fff);
   min-height: 600vh;
   height: var(--hero-track-height, 600vh);
-  overflow-x: hidden;
   overflow-x: clip;
 }
 
@@ -393,29 +392,6 @@
    Phone Layout (below 768px or portrait) — HERO_SPEC.md "Phones"
    ========================================================================== */
 @media (max-width: 767px), (orientation: portrait) {
-  .hero-nav {
-    padding: 16px 20px;
-  }
-
-  .hero-nav-brand {
-    font-size: 24px;
-  }
-
-  .hero-nav-actions {
-    gap: 8px;
-  }
-
-  .hero-nav-link {
-    display: none;
-  }
-
-  .hero-nav-btn {
-    font-size: 11px;
-    padding: 8px 16px;
-    min-height: 40px;
-    min-width: unset;
-  }
-
   .hero-strip {
     top: calc(44 * var(--hero-u));
     gap: calc(56 * var(--hero-u));
